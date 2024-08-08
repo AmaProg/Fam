@@ -7,7 +7,7 @@ import pandas as pd
 
 from enums.bank import BankEnum
 from command.company import action
-import utils
+import fam.utils as utils
 
 app = typer.Typer()
 

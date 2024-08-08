@@ -1,12 +1,11 @@
 from typing import Any, List
 
-from command.bank import banker
-from command.company import statement
-from command.budget import financial
+from command import create, expense, bank, invoice
 
 
 MAIN: List[dict[str, Any]] = [
-    banker.bank_command,
-    statement.statement_command,
-    financial.financial_command,
+    create.create_command,
+    expense.expense_command,
+    bank.bank_command,
+    invoice.invoice_command,
 ]

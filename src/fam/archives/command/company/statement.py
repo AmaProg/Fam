@@ -2,7 +2,7 @@ from typing import Any, List
 import typer
 
 from command.company import income, expense
-import utils
+import fam.utils as utils
 
 app = typer.Typer()
 
