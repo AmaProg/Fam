@@ -2,10 +2,13 @@ import typer
 from typing_extensions import Annotated
 from typer import Typer
 
-from enums import BankEnum, FinancialProductEnum
-from add import MAIN
-from utils import fprint
-import utils
+from fam.enums import BankEnum, FinancialProductEnum
+from fam.add import MAIN
+from fam.utils import fprint
+from rich import print
+from fam.callback import display_version
+from fam import utils
+from fam import action
 
 
 app = Typer(no_args_is_help=True)
@@ -15,7 +18,7 @@ app = utils.add_command(app, MAIN)
 
 @app.command(help="Initializes the application for the account user.")
 def init():
-    pass
+    action.init_app_dir()
 
 
 @app.command(help="Add bank statements.")
@@ -56,8 +59,12 @@ def credit(bank, product, solde, month, year):
 
 
 @app.callback(invoke_without_command=True)
-def main():
-    pass
+def main(
+    ctx: typer.Context,
+    version: Annotated[bool, typer.Option("--version", "-v", help="")] = False,
+):
+    if version:
+        display_version()
 
 
 if __name__ == "__main__":

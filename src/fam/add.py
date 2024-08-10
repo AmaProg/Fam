@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from command import create, expense, bank, invoice
+from fam.command import create, expense, bank, invoice
 
 
 MAIN: List[dict[str, Any]] = [
