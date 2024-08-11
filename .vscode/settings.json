@@ -1,0 +1,17 @@
+{
+ "editor.defaultFormatter": "ms-python.black-formatter",
+ "editor.formatOnSave": true,
+ "black-formatter.args": ["--line-length", "88"],
+ "python.testing.pytestArgs": ["tests"],
+ "python.testing.unittestEnabled": false,
+ "python.testing.pytestEnabled": true,
+ "[jsonc]": {
+   "editor.defaultFormatter": "esbenp.prettier-vscode"
+ },
+ "python.analysis.typeCheckingMode": "basic",
+ "python.analysis.autoImportCompletions": true,
+ "editor.tabSize": 4,
+ "python.envFile": "${workspaceFolder}/.env-pythonpath",
+
+
+}
