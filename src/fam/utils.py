@@ -19,4 +19,4 @@ def add_command(app: typer.Typer, commands: list[dict[str, Any]]):
 def fprint(message):
     color: str = "cyan"
     print(f"[{color}]Fam[/{color}]: {message}")
-    sleep(0.3)
+    sleep(0.4)
