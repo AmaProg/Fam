@@ -11,6 +11,23 @@
       "program": "src/fam/main.py",
       "args": ["reset"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: Create Categories",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": [
+        "create",
+        "category",
+        "-n",
+        "Tranport",
+        "-d",
+        "Depense pour le transport",
+        "-c",
+        "expense"
+      ],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }
