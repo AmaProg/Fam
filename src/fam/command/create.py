@@ -52,62 +52,14 @@ def category(
 
         app_dir: Path = Path(app_cli.directory.app_dir)
         categories_file: Path = app_dir / "database" / "table" / "category.yaml"
-        # data: dict[str, Any] = {}
 
-        # yaml_data: dict = app_cli.file.read_file(categories_file.as_posix(), "yaml")
-        # category_data: dict[str, Any] = {"name": name, "description": desc}
+        # insert les donnee dans la base de donnee
 
         cat: Category = Category(categories_file.as_posix())
 
         cat.insert_data(name, desc, category.value)
 
         cat.submit()
-
-        print("")
-
-        # cat.add_data(name, desc, category)
-
-        # cat.submit()
-
-        # Verifier si la categorie existe deja
-        # if yaml_data["categories"] is None:
-
-        #     # Ajouter la categorie dans le fichier et le sauvegarder.
-
-        #     category_header: str = category
-
-        #     data[category_header] = [category_data]
-
-        #     yaml_data["categories"] = [data]
-
-        # else:
-
-        #     cat_table: list = yaml_data["categories"]
-
-        #     for idx, row in enumerate(cat_table):
-
-        #         if category in row:
-
-        #             cat_list: list = row[category]
-
-        #             for idx, cat in enumerate(cat_list):
-
-        #                 if cat["name"] == name:
-        #                     fprint(
-        #                         f"The category '[yellow]{name}[/yellow]' already exists for the '[yellow]{category}[/yellow]' section"
-        #                     )
-        #                     raise typer.Abort()
-
-        #             cat_list.append(category_data)
-        #             break
-
-        #     category_header: str = category
-
-        #     data[category_header] = [category_data]
-
-        #     yaml_data["categories"].append(data)
-
-        # app_cli.file.save_file(categories_file.as_posix(), yaml_data, "yaml")
 
         # print un message qui indique a l utilisateur que le l'ajoute a ete
         # reussi avec success

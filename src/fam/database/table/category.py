@@ -1,11 +1,15 @@
 from pathlib import Path
 from typing import Any
+from enum import Enum
 
 import typer
 from fam.cli import app_cli
 
 from fam.system.file import File
 from fam.utils import fprint
+
+NAME = "name"
+DESC = "description"
 
 
 class Category:
@@ -21,9 +25,36 @@ class Category:
         if section is None:
             section = []
 
+            self._add_data(section, cat_data, cat_section)
+
+            # section.append(cat_data)
+
+            # self._data["category"][cat_section] = section
+
+        else:
+
+            if self._is_category_exist(section, cat_name):
+                raise ValueError(f"The category {cat_name} exist")
+
+            self._add_data(section, cat_data, cat_section)
+
+    def _add_data(
+        self,
+        section: list[dict[str, Any]],
+        cat_data: dict[str, Any],
+        cat_section: str,
+    ) -> None:
         section.append(cat_data)
 
         self._data["category"][cat_section] = section
+
+    def _is_category_exist(self, section: list[dict[str, Any]], cat_name: str) -> bool:
+
+        for idx, cat in enumerate(section):
+            if cat[NAME] == cat_name:
+                return True
+
+        return False
 
     def submit(self) -> None:
         File.save_file(self._filename, self._data, "yaml")
