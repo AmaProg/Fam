@@ -1,17 +1,24 @@
+from uuid import UUID, uuid4
 from pathlib import Path
-import shutil
-from sys import version
-import typer
+from typing import Any, Generator
 from typing_extensions import Annotated
-from typer import Typer
 
+
+import typer
+from typer import Typer
+from sqlalchemy.orm import Session
+
+from fam.database.models import User
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.add import MAIN
-from fam.utils import fprint
+from fam.system.file import File
+from fam.utils import fAborted, fprint
 from rich import print
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
+from fam.database import services
+from fam.database.db import DatabaseType, get_db
 
 
 app = Typer(no_args_is_help=True)
@@ -112,11 +119,78 @@ def credit(bank, product, solde, month, year):
     pass
 
 
+@app.command(help="Authenticate a user by providing their username and password.")
+def login(
+    name: Annotated[str, typer.Option(..., "--name", "-n", help="User Name.")],
+):
+    pass
+
+
+@app.command(help="Register a new user by providing necessary details.")
+def signup(
+    firstname: Annotated[str, typer.Option(prompt=True)],
+    lastname: Annotated[str, typer.Option(prompt=True)],
+    password: Annotated[
+        str,
+        typer.Option(prompt=True, confirmation_prompt=True, hide_input=True, help=""),
+    ],
+):
+
+    try:
+        # check if user already exist.
+        with get_db(DatabaseType.APP) as db:
+
+            user: User = services.get_user_by_fname_n_lname(db, firstname, lastname)
+
+            if user is not None:
+
+                fprint("The user already exists.")
+                raise typer.Abort()
+
+        # Create a unique ID.
+        id: UUID = uuid4()
+
+        # Create the user folder with unique ID.
+        user_dir: Path = action.create_new_user_folder(id.hex)
+
+        # Create a new sql database for the user.
+        db_id: str = action.create_new_database(user_dir)
+
+        # crypt the password
+        hash_pwd: str = utils.hash_password(password)
+
+        # save the user path in the config file
+        config_path: str = (Path(app_cli.directory.app_dir) / "config.yaml").as_posix()
+
+        yaml_data: dict[str, Any] = File.read_file(config_path, "yaml")
+
+        users_list: list[dict[str, Any]] | None = yaml_data["users"]
+
+        if users_list is None:
+            users_list = []
+
+        users_list.append({"database": db_id, "path": (user_dir).as_posix()})
+
+        yaml_data["users"] = users_list
+
+        File.save_file(config_path, yaml_data, "yaml")
+
+        # Print that the user folder created successfully.
+        fprint("Your account has been successfully created.")
+
+    except typer.Abort as e:
+        fAborted()
+
+    except Exception as e:
+        print(e)
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
     version: Annotated[bool, typer.Option("--version", "-v", help="")] = False,
 ):
+
     if version:
         display_version()
         return

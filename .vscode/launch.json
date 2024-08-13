@@ -28,6 +28,14 @@
         "expense"
       ],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: signup",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["signup"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

@@ -1,0 +1,4 @@
+database:
+  name: "auth.db"
+users:
+  

@@ -109,5 +109,35 @@
 		],
 		"description": "Create a if main == __name__"
 	},
+	"Attribut for db": {
+		"scope": "python",
+		"prefix": "attdb",
+		"body": [
+			"$1: Mapped[$2] = mapped_column(nullable=$3)",
+
+			
+		],
+		"description": "Create property for db class"
+	},
+	"relation db": {
+		"scope": "python",
+		"prefix": "attrel",
+		"body": [
+			"$1: Mapped['$2'] = relationship('$2',cascade='all, delete-orphan')",
+
+			
+		],
+		"description": "Create property for db class"
+	},
+	"relation key db": {
+		"scope": "python",
+		"prefix": "attkey",
+		"body": [
+			"$1: Mapped[$2] = mapped_column(ForeignKey('$1', ondelete='CASCADE'),nullable=$3,)",
+
+			
+		],
+		"description": "Create property for db class"
+	},
 
 } 

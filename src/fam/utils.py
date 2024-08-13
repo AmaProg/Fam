@@ -2,7 +2,12 @@ from time import sleep
 from typing import Any
 
 import typer
+import string
+import secrets
 from rich import print
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def add_command(app: typer.Typer, commands: list[dict[str, Any]]):
@@ -25,3 +30,11 @@ def fprint(message):
 def fAborted() -> None:
     color: str = "red"
     print(f"[{color}]Aborted[/{color}]")
+
+
+def verify_password(plain_password: str, hasded_password: str):
+    return pwd_context.verify(plain_password, hasded_password)
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
