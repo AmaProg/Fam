@@ -9,6 +9,7 @@ from typer import Typer
 from sqlalchemy.orm import Session
 
 from fam.database.models import User
+from fam.database.schemas import CreateUser
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.add import MAIN
 from fam.system.file import File
@@ -17,7 +18,8 @@ from rich import print
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
-from fam.database import services
+from fam.database import services as app_services
+from fam.database.users import services as user_services
 from fam.database.db import DatabaseType, get_db
 
 
@@ -140,24 +142,33 @@ def signup(
         # check if user already exist.
         with get_db(DatabaseType.APP) as db:
 
-            user: User = services.get_user_by_fname_n_lname(db, firstname, lastname)
+            user: User = app_services.get_user_by_fname_n_lname(db, firstname, lastname)
 
             if user is not None:
 
                 fprint("The user already exists.")
                 raise typer.Abort()
 
-        # Create a unique ID.
-        id: UUID = uuid4()
+            # Create a unique ID.
+            id: UUID = uuid4()
 
-        # Create the user folder with unique ID.
-        user_dir: Path = action.create_new_user_folder(id.hex)
+            # Create the user folder with unique ID.
+            user_dir: Path = action.create_new_user_folder(id.hex)
 
-        # Create a new sql database for the user.
-        db_id: str = action.create_new_database(user_dir)
+            # Create a new sql database for the user.
+            db_id: str = action.create_new_database(user_dir)
 
-        # crypt the password
-        hash_pwd: str = utils.hash_password(password)
+            # crypt the password
+            hash_pwd: str = utils.hash_password(password)
+
+            # create a new user in the app database
+            new_user: CreateUser = CreateUser(
+                first_name=firstname,
+                last_name=lastname,
+                password=password,
+                database_id=db_id,
+            )
+            user_services.create_user(db, new_user)
 
         # save the user path in the config file
         config_path: str = (Path(app_cli.directory.app_dir) / "config.yaml").as_posix()
