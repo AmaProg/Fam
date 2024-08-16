@@ -1,6 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
 from sqlalchemy import ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 
 UserBase = declarative_base()
 

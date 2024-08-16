@@ -59,6 +59,7 @@ def delete_app(app_dir_path: Path) -> None:
 def create_new_user_folder(id: str) -> Path:
     app_dir: Path = Path(app_cli.directory.app_dir)
     users_folder: Path = app_dir / "users" / id
+    a = users_folder.as_posix()
     users_folder.mkdir(exist_ok=True)
 
     return users_folder
@@ -66,22 +67,27 @@ def create_new_user_folder(id: str) -> Path:
 
 def create_new_database(database_path: Path) -> str:
     
-    db_id: UUID = uuid4()
-
-    database_url: str = f"sqlite:///{(database_path / db_id.hex).with_suffix(".db").as_posix() }"
-
-    # Generate DATABASE_URL for the user
-    engin = create_engine(database_url)
-
-
-    # Create the tables if they don't exist
-    UserBase.metadata.create_all(bind=engin)
-
-    # Configure Alembic with the new DATABASE_URL
-    alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-
-    # Apply Alembic migrations
-    command.upgrade(alembic_cfg, "head")
+    try:
     
-    return db_id.hex
+        db_id: UUID = uuid4()
+
+        database_url: str = f"sqlite:///{(database_path / db_id.hex).with_suffix(".db").as_posix() }"
+
+        # Generate DATABASE_URL for the user
+        engin = create_engine(database_url)
+
+
+        # Create the tables if they don't exist
+        UserBase.metadata.create_all(bind=engin)
+
+        # Configure Alembic with the new DATABASE_URL
+        alembic_cfg = Config("alembic.ini")
+        alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+
+        # Apply Alembic migrations
+        command.upgrade(alembic_cfg, "head")
+        
+        return db_id.hex
+    
+    finally:
+        engin.dispose()

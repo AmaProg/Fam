@@ -1,7 +1,6 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any, Generator
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
 from contextlib import contextmanager
@@ -45,7 +44,7 @@ class Database:
 
 
 @contextmanager
-def get_db(db_type: DatabaseType, user: str = "") -> Generator[Session, Any, Any]:
+def get_dbs(db_type: DatabaseType, user: str = "") -> Generator[Session, Any, Any]:
     db: Database = Database(db_type, user)
     local: sessionmaker[Session] = db.create_session()
     session = local()
@@ -54,3 +53,33 @@ def get_db(db_type: DatabaseType, user: str = "") -> Generator[Session, Any, Any
         yield session
     finally:
         session.close()
+
+
+def get_db_app() -> str:
+    app_dir: Path = Path(app_cli.directory.app_dir)
+    config_filename: dict[str, Any] = load_config((app_dir / "config.yaml").as_posix())
+    database_name: str = config_filename["database"]["name"]
+
+    return (app_dir / database_name).as_posix()
+
+
+@contextmanager
+def get_db(db_path: str = "", db_type: DatabaseType = DatabaseType.APP):
+
+    if db_type == DatabaseType.APP:
+        db_path = get_db_app()
+
+    database_url: str = f"sqlite:///{db_path}"
+
+    engine = create_engine(database_url, echo=True)
+
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    session: Session = SessionLocal()
+
+    try:
+        yield session
+
+    finally:
+        session.close()
+        engine.dispose()

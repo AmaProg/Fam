@@ -25,7 +25,7 @@ class AppCli:
         return self._file
 
     def __init__(self) -> None:
-        self._app_name: str = "FAM"
+        self._app_name: str = "Financial Advisor for Me"
         self._version: str = "1.0.0"
         self._desc: str = "Application for financial."
         self._directory: directory.Dir = directory.Dir()

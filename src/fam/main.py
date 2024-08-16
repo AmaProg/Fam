@@ -22,7 +22,6 @@ from fam.database import services as app_services
 from fam.database.users import services as user_services
 from fam.database.db import DatabaseType, get_db
 
-
 app = Typer(no_args_is_help=True)
 
 app = utils.add_command(app, MAIN)
@@ -140,7 +139,7 @@ def signup(
 
     try:
         # check if user already exist.
-        with get_db(DatabaseType.APP) as db:
+        with get_db() as db:
 
             user: User = app_services.get_user_by_fname_n_lname(db, firstname, lastname)
 
@@ -165,7 +164,7 @@ def signup(
             new_user: CreateUser = CreateUser(
                 first_name=firstname,
                 last_name=lastname,
-                password=password,
+                password=hash_pwd,
                 database_id=db_id,
             )
             user_services.create_user(db, new_user)
