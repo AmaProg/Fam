@@ -10,12 +10,14 @@ class CategoryTable(UserBase):
     id: Mapped[int] = mapped_column(
         nullable=False, autoincrement=True, primary_key=True
     )
-    name: Mapped[str] = mapped_column(nullable=False)
+    category_name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
     account_id: Mapped[int] = mapped_column(
         ForeignKey("account.id", ondelete="CASCADE"),
         nullable=False,
     )
+    # Définir la relation avec AccountTable
+    account = relationship("AccountTable", back_populates="categories")
 
 
 class AccountTable(UserBase):
@@ -24,8 +26,10 @@ class AccountTable(UserBase):
     id: Mapped[int] = mapped_column(
         nullable=False, autoincrement=True, primary_key=True
     )
-    name: Mapped[str] = mapped_column(nullable=False)
+    account_name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
-    category: Mapped["CategoryTable"] = relationship(
-        "category", cascade="all, delete-orphan", back_populates=""
+
+    # Définir la relation avec CategoryTable
+    categories = relationship(
+        "CategoryTable", cascade="all, delete-orphan", back_populates="account"
     )

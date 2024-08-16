@@ -1,15 +1,16 @@
+from typing import Any
 from uuid import UUID, uuid4
 from pathlib import Path
-from typing import Any, Generator
 from typing_extensions import Annotated
-
 
 import typer
 from typer import Typer
-from sqlalchemy.orm import Session
 
 from fam.database.models import User
 from fam.database.schemas import CreateUser
+from fam.database import services as app_services
+from fam.database.users import services as user_services
+from fam.database.db import get_db
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.add import MAIN
 from fam.system.file import File
@@ -18,9 +19,7 @@ from rich import print
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
-from fam.database import services as app_services
-from fam.database.users import services as user_services
-from fam.database.db import DatabaseType, get_db
+
 
 app = Typer(no_args_is_help=True)
 
@@ -122,8 +121,43 @@ def credit(bank, product, solde, month, year):
 
 @app.command(help="Authenticate a user by providing their username and password.")
 def login(
-    name: Annotated[str, typer.Option(..., "--name", "-n", help="User Name.")],
+    firstname: Annotated[str, typer.Option(prompt=True)],
+    password: Annotated[
+        str,
+        typer.Option(
+            prompt=True,
+            hide_input=True,
+            help="",
+        ),
+    ],
 ):
+    # Check if the user is in the database
+    with get_db() as db:
+
+        user: User = app_services.get_user_by_fname(db, firstname)
+
+        if user is None:
+            fprint("The password or username is invalid.")
+            raise typer.Abort()
+
+        if not utils.verify_password(password, user.password):
+            fprint("The password or username is invalid.")
+            raise typer.Abort()
+
+    # Create a Session in store info in app dir
+    session: dict[str, Any] = {"sessioin": {}}
+    sess_data: dict[str, Any] = {"user_id": user.id, "database_path": user.database_url}
+    session["sessioin"] = sess_data
+
+    app_dir: Path = Path(app_cli.directory.app_dir)
+
+    sess_filename: Path = app_dir / "users" / "session.yaml"
+
+    File.save_file(sess_filename.as_posix(), session, "yaml")
+
+    # print to user the login is success
+    fprint("Connection successful.")
+
     pass
 
 
@@ -155,7 +189,7 @@ def signup(
             user_dir: Path = action.create_new_user_folder(id.hex)
 
             # Create a new sql database for the user.
-            db_id: str = action.create_new_database(user_dir)
+            db_id, database_url = action.create_new_database(user_dir)
 
             # crypt the password
             hash_pwd: str = utils.hash_password(password)
@@ -165,7 +199,7 @@ def signup(
                 first_name=firstname,
                 last_name=lastname,
                 password=hash_pwd,
-                database_id=db_id,
+                database_url=database_url,
             )
             user_services.create_user(db, new_user)
 

@@ -1,3 +1,4 @@
+from ast import List
 from pathlib import Path
 import shutil
 from rich import print
@@ -6,7 +7,10 @@ from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
 
-from fam.database.users.models import UserBase
+from fam.database.db import DatabaseType, get_db
+from fam.database.users.models import AccountTable, UserBase
+from fam.database.users.schemas import AccountBM
+from fam.database.users import services as user_services
 from fam.utils import fprint
 from fam.cli import app_cli
 
@@ -41,7 +45,6 @@ def init_app_dir() -> None:
     except Exception as e:
         print(e)
 
-
 def reset_app(app_dir_path: Path) -> None:
     msg: str = "The app was successfully deleted"
 
@@ -49,12 +52,10 @@ def reset_app(app_dir_path: Path) -> None:
     fprint(msg)
     init_app_dir()
 
-
 def delete_app(app_dir_path: Path) -> None:
     msg: str = "The app was successfully deleted"
     shutil.rmtree(app_dir_path.as_posix())
     fprint(msg)
-
 
 def create_new_user_folder(id: str) -> Path:
     app_dir: Path = Path(app_cli.directory.app_dir)
@@ -64,8 +65,7 @@ def create_new_user_folder(id: str) -> Path:
 
     return users_folder
 
-
-def create_new_database(database_path: Path) -> str:
+def create_new_database(database_path: Path) -> tuple[str, str]:
     
     try:
     
@@ -87,7 +87,23 @@ def create_new_database(database_path: Path) -> str:
         # Apply Alembic migrations
         command.upgrade(alembic_cfg, "head")
         
-        return db_id.hex
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+            income: AccountBM = AccountBM( account_name="income", description="Income account.")
+            expense: AccountBM = AccountBM( account_name="expense", description="Expense account.")
+            asset: AccountBM = AccountBM( account_name="asset", description="Asset account.")
+            passive: AccountBM = AccountBM( account_name="passive", description="Passive account.")
+            
+            accounts: list[AccountBM] = [income, expense, asset, passive]
+            
+            user_services.create_account(db, accounts)
+            
+            fprint("The initialization of the database for the user was successfully created.")
+        
+        
+        return db_id.hex, database_url
     
     finally:
         engin.dispose()
+
+def init_user_database() -> None:
+    pass

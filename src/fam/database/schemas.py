@@ -5,4 +5,4 @@ class CreateUser(BaseModel):
     first_name: str
     last_name: str
     password: str
-    database_id: str
+    database_url: str

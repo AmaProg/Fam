@@ -14,45 +14,45 @@ class DatabaseType(Enum):
     USER = "user"
 
 
-class Database:
-    def __init__(self, db_type: DatabaseType, user_path: str = "") -> None:
-        self._config: dict[str, Any] = self._get_config_file()
-        self._database_path = self._get_database_path(db_type, user_path)
-        self._database_url: str = f"sqlite:///{self._database_path}"
+# class Database:
+#     def __init__(self, db_type: DatabaseType, user_path: str = "") -> None:
+#         self._config: dict[str, Any] = self._get_config_file()
+#         self._database_path = self._get_database_path(db_type, user_path)
+#         self._database_url: str = f"sqlite:///{self._database_path}"
 
-    def create_session(self) -> sessionmaker[Session]:
-        engine = create_engine(self._database_url, echo=True)
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+#     def create_session(self) -> sessionmaker[Session]:
+#         engine = create_engine(self._database_url, echo=True)
+#         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-        return SessionLocal
+#         return SessionLocal
 
-    def _get_config_file(self) -> dict[str, Any]:
-        app_dir: Path = Path(app_cli.directory.app_dir)
-        return load_config((app_dir / "config.yaml").as_posix())
+#     def _get_config_file(self) -> dict[str, Any]:
+#         app_dir: Path = Path(app_cli.directory.app_dir)
+#         return load_config((app_dir / "config.yaml").as_posix())
 
-    def _get_database_path(self, db_type: DatabaseType, user: str = "") -> str:
+#     def _get_database_path(self, db_type: DatabaseType, user: str = "") -> str:
 
-        if db_type == DatabaseType.APP:
+#         if db_type == DatabaseType.APP:
 
-            database_name: str = self._config["database"]["name"]
-            app_dir: Path = Path(app_cli.directory.app_dir)
+#             database_name: str = self._config["database"]["name"]
+#             app_dir: Path = Path(app_cli.directory.app_dir)
 
-            return (app_dir / database_name).as_posix()
+#             return f"sqlite:///{(app_dir / database_name).as_posix()}"
 
-        else:
-            return user
+#         else:
+#             return user
 
 
-@contextmanager
-def get_dbs(db_type: DatabaseType, user: str = "") -> Generator[Session, Any, Any]:
-    db: Database = Database(db_type, user)
-    local: sessionmaker[Session] = db.create_session()
-    session = local()
+# @contextmanager
+# def get_dbs(db_type: DatabaseType, user: str = "") -> Generator[Session, Any, Any]:
+#     db: Database = Database(db_type, user)
+#     local: sessionmaker[Session] = db.create_session()
+#     session = local()
 
-    try:
-        yield session
-    finally:
-        session.close()
+#     try:
+#         yield session
+#     finally:
+#         session.close()
 
 
 def get_db_app() -> str:
@@ -60,7 +60,7 @@ def get_db_app() -> str:
     config_filename: dict[str, Any] = load_config((app_dir / "config.yaml").as_posix())
     database_name: str = config_filename["database"]["name"]
 
-    return (app_dir / database_name).as_posix()
+    return f"sqlite:///{(app_dir / database_name).as_posix()}"
 
 
 @contextmanager
@@ -69,7 +69,7 @@ def get_db(db_path: str = "", db_type: DatabaseType = DatabaseType.APP):
     if db_type == DatabaseType.APP:
         db_path = get_db_app()
 
-    database_url: str = f"sqlite:///{db_path}"
+    database_url: str = db_path
 
     engine = create_engine(database_url, echo=True)
 
