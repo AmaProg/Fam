@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from fam.command import create, expense, bank, invoice
+from fam.command.adding import add
 
 
 MAIN: List[dict[str, Any]] = [
@@ -8,4 +9,5 @@ MAIN: List[dict[str, Any]] = [
     expense.expense_command,
     bank.bank_command,
     invoice.invoice_command,
+    add.add_command,
 ]

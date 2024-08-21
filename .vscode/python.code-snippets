@@ -111,7 +111,7 @@
 	},
 	"Attribut for db": {
 		"scope": "python",
-		"prefix": "attdb",
+		"prefix": "sqlattdb",
 		"body": [
 			"$1: Mapped[$2] = mapped_column(nullable=$3)",
 
@@ -121,7 +121,7 @@
 	},
 	"relation db": {
 		"scope": "python",
-		"prefix": "attrel",
+		"prefix": "sqlattrel",
 		"body": [
 			"$1: Mapped['$2'] = relationship('$2',cascade='all, delete-orphan')",
 
@@ -131,7 +131,7 @@
 	},
 	"relation key db": {
 		"scope": "python",
-		"prefix": "attkey",
+		"prefix": "sqlattkey",
 		"body": [
 			"$1: Mapped[$2] = mapped_column(ForeignKey('$1', ondelete='CASCADE'),nullable=$3,)",
 
@@ -139,5 +139,22 @@
 		],
 		"description": "Create property for db class"
 	},
+	"Typer Command": {
+		"scope": "python",
+		"prefix": "newcom",
+		"body": [
+			"from typing_extensions import Annotated",
+			"from typing import Any",
+			"import typer",
+			"from typer import Typer\n",
+
+			"app = Typer(help='$1')\n",
+			"$2_command: dict[str, Any] = {'app': app, 'name': '$2'}",
+
+			
+		],
+		"description": "Create property for db class"
+	},
+
 
 } 

@@ -1,15 +1,16 @@
 from ast import List
 from pathlib import Path
 import shutil
+from pandas import DataFrame
 from rich import print
-from sqlalchemy import create_engine
+from sqlalchemy import ScalarResult, create_engine
 from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
 
 from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import AccountTable, UserBase
-from fam.database.users.schemas import AccountBM
+from fam.database.users.models import AccountTable, CategoryTable, UserBase
+from fam.database.users.schemas import AccountBM, CreateClassify
 from fam.database.users import services as user_services
 from fam.utils import fprint
 from fam.cli import app_cli
@@ -88,14 +89,16 @@ def create_new_database(database_path: Path) -> tuple[str, str]:
         command.upgrade(alembic_cfg, "head")
         
         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
-            income: AccountBM = AccountBM( account_name="income", description="Income account.")
-            expense: AccountBM = AccountBM( account_name="expense", description="Expense account.")
-            asset: AccountBM = AccountBM( account_name="asset", description="Asset account.")
-            passive: AccountBM = AccountBM( account_name="passive", description="Passive account.")
+            income: AccountBM = AccountBM( name="income", description="Income account.")
+            expense: AccountBM = AccountBM( name="expense", description="Expense account.")
+            asset: AccountBM = AccountBM( name="asset", description="Asset account.")
+            passive: AccountBM = AccountBM( name="passive", description="Passive account.")
             
             accounts: list[AccountBM] = [income, expense, asset, passive]
             
             user_services.create_account(db, accounts)
+            user_services.create_new_classification(db, CreateClassify(name="personel"))
+            user_services.create_new_classification(db, CreateClassify(name="family"))
             
             fprint("The initialization of the database for the user was successfully created.")
         
@@ -105,5 +108,7 @@ def create_new_database(database_path: Path) -> tuple[str, str]:
     finally:
         engin.dispose()
 
-def init_user_database() -> None:
+def categorize_transactions(cat_list: ScalarResult[CategoryTable], statement: DataFrame,) -> None:
+    # 
     pass
+    

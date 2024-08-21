@@ -1,21 +1,24 @@
 from typing import Any
 from uuid import UUID, uuid4
 from pathlib import Path
+from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
 
 import typer
 from typer import Typer
+from rich import print
 
 from fam.database.models import User
 from fam.database.schemas import CreateUser
 from fam.database import services as app_services
 from fam.database.users import services as user_services
-from fam.database.db import get_db
+from fam.database.db import DatabaseType, get_db
+from fam.database.users.models import CategoryTable
 from fam.enums import BankEnum, FinancialProductEnum
-from fam.add import MAIN
+from fam.add_command import MAIN
 from fam.system.file import File
 from fam.utils import fAborted, fprint
-from rich import print
+from fam.auth import get_user_session
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
@@ -111,7 +114,21 @@ def add(
         ),
     ] = None,
 ):
-    pass
+
+    # Get user session
+    session: dict[str, Any] = get_user_session()
+    database_url: str = session["database_url"]
+
+    with get_db(database_url, DatabaseType.USER) as db:
+
+        # Categories all transactions
+        all_cat: ScalarResult[CategoryTable] = user_services.get_all_category(db)
+
+        # Adds all categorized transactions to the database.
+        action.categorize_transactions(cat_list=all_cat)
+
+    # print The bank statement has been successfully categorized.
+    fprint("The bank statement has been successfully categorized.")
 
 
 @app.command(help="Allows you to retrieve information on the credit products you have.")
@@ -145,9 +162,9 @@ def login(
             raise typer.Abort()
 
     # Create a Session in store info in app dir
-    session: dict[str, Any] = {"sessioin": {}}
-    sess_data: dict[str, Any] = {"user_id": user.id, "database_path": user.database_url}
-    session["sessioin"] = sess_data
+    session: dict[str, Any] = {"session": {}}
+    sess_data: dict[str, Any] = {"user_id": user.id, "database_url": user.database_url}
+    session["session"] = sess_data
 
     app_dir: Path = Path(app_cli.directory.app_dir)
 

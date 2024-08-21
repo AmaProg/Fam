@@ -3,11 +3,11 @@ from typing_extensions import Annotated
 import typer
 
 import fam.utils as utils
-import fam.add as add
+import fam.add_command as add_command
 
 app = typer.Typer()
 
-app = utils.add_command(app, add.MAIN)
+app = utils.add_command(app, add_command.MAIN)
 
 
 @app.command(help="Create an empty Fam workspace")

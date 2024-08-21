@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any
+from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
 from typer import Typer
 
@@ -7,9 +8,14 @@ from rich import print
 import typer
 
 from fam.cli import app_cli
+from fam.database.db import DatabaseType, get_db
+from fam.database.users.models import AccountTable, CategoryTable
+from fam.database.users.schemas import CategoryBM
 from fam.enums import CategorySection
+from fam.system.file import File
 from fam.utils import fAborted, fprint
 from fam.database.table.category import Category
+from fam.database.users import services as user_services
 
 app = Typer(
     help="Creates bank accounts and expense or income categories.",
@@ -30,7 +36,7 @@ def account(bank, name, description):
 )
 def category(
     name: Annotated[str, typer.Option(..., "--name", "-n", help="Category name.")],
-    category: Annotated[
+    account_type: Annotated[
         CategorySection,
         typer.Option(
             ...,
@@ -42,29 +48,55 @@ def category(
     ],
     desc: Annotated[
         str, typer.Option("--desc", "-d", help="Description of the category.")
-    ] = None,
+    ] = "",
 ):
 
     try:
 
-        # Recuperer le chemin du fichier categories et ouvrir le fichier et
-        # recupere le contenue.
-
+        # Get session file
         app_dir: Path = Path(app_cli.directory.app_dir)
-        categories_file: Path = app_dir / "database" / "table" / "category.yaml"
 
-        # insert les donnee dans la base de donnee
+        sess_path: Path = app_dir / "users" / "session.yaml"
 
-        cat: Category = Category(categories_file.as_posix())
+        session_data: dict[str, Any] = File.read_file(sess_path.as_posix(), "yaml")
 
-        cat.insert_data(name, desc, category.value)
+        database_url: str = session_data["session"]["database_url"]
 
-        cat.submit()
+        with get_db(database_url, DatabaseType.USER) as db:
 
-        # print un message qui indique a l utilisateur que le l'ajoute a ete
-        # reussi avec success
-        color: str = "green"
-        fprint(f"The category '[{color}]{name}[/{color}]' was added successfully.")
+            # Check if the category is alredy in the database
+            categories: ScalarResult[CategoryTable] | None = (
+                user_services.get_category_by_name(db, name)
+            )
+
+            if categories is not None:
+                for idx, category in enumerate(categories):
+
+                    if (
+                        category.name == name
+                        and category.account.name == account_type.value
+                    ):
+                        fprint("The category is already present.")
+                        raise typer.Abort()
+
+            # add category
+            account_table: AccountTable | None = user_services.get_account_id_by_name(
+                db, account_type.value
+            )
+
+            if account_table is None:
+                raise typer.Abort()
+
+            cat: CategoryBM = CategoryBM(
+                name=name,
+                description=desc,
+                account_id=account_table.id,
+            )
+
+            user_services.create_new_category(db, cat)
+
+        # print success added category
+        fprint("The category was added successfully.")
 
     except typer.Abort as e:
         fAborted()

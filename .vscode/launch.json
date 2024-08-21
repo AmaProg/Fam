@@ -36,6 +36,14 @@
       "program": "src/fam/main.py",
       "args": ["signup"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: add statement",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["add", "statement", "-f", "D:/2024/Relever Banquiere/BMO/CSV/statement_3_aout_2024.csv"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class BankEnum(Enum):
+class BankEnum(str, Enum):
     BMO = "bmo"
     TANGERINE = "tangerine"
 

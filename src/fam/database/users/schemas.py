@@ -2,10 +2,24 @@ from pydantic import BaseModel
 
 
 class AccountBM(BaseModel):
-    account_name: str
+    name: str
     description: str
 
 
 class CategoryBM(BaseModel):
-    category_name: str
+    name: str
     description: str
+    account_id: int
+
+
+class CreateTransactionBM(BaseModel):
+    description: str
+    amount: float
+    date: int
+    account_id: int
+    category_id: int
+    classification_id: int
+
+
+class CreateClassify(BaseModel):
+    name: str
