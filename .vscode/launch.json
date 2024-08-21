@@ -42,7 +42,20 @@
       "type": "debugpy",
       "request": "launch",
       "program": "src/fam/main.py",
-      "args": ["add", "statement", "-f", "D:/2024/Relever Banquiere/BMO/CSV/statement_3_aout_2024.csv"],
+      "args": [
+        "add",
+        "statement",
+        "-f",
+        "K:/Projects/statement_3_aout_2024.csv"
+      ],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: expense build",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["expense", "build"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]

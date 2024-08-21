@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 from typing import Any
 from typing_extensions import Annotated
@@ -16,6 +17,7 @@ from fam.database.users.models import (
     ClassificationTable,
     TransactionTable,
 )
+from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.utils import fprint
 from fam.database.users import services as user_services
@@ -81,25 +83,47 @@ def statement(
 
         # By category build category and classification choice
         cat_dict: dict[int, CategoryTable] = {}
-        cat_dict.update({category.id: category for category in categories})
-        cat_choice: list[str] = [
-            f"{category.id}: {category.name} ({category.account.name})"
-            for category in categories
-        ]
-
+        cat_choice: list[str] = []
+        
+        for category in categories:
+            cat_dict.update({category.id: category})
+            cat_choice.append(copy.copy(f"{category.id}: {category.name} ({category.account.name})"))
+        
+    
         class_dict: dict[int, ClassificationTable] = {}
-        class_dict.update({classify.id: classify for classify in classifies})
-        class_choice: list[str] = [str(f"{classify.id} : {classify}") for classify in classifies]
+        class_choice: list[str] = []
+        
+        for classify in classifies:
+            class_dict.update({classify.id: classify})
+            class_choice.append(f"{classify.id} : {classify.name}")
 
         # Classify all transaction
         transactions: list[TransactionTable] = []
 
         for idx, transaction in df_csv.iterrows():
             # promp question for each transaction
-            cat_id: int = typer.prompt(type=int, text=f"{cat_choice}\n\nSelect a category for {transaction["Description"]}",)
-            cls_id: int = typer.prompt(type=int, text=f"{class_choice}\n\nSelect a class for {transaction["Description"]}",)
+            print("\n".join(cat_choice))
+            cat_id: int = typer.prompt(type=int, text=f"Select a category for {transaction["Description"]}",show_choices=True, show_default=True,)
+            print("\n".join(class_choice))
+            cls_id: int = typer.prompt(type=int, text=f"Select a class for {transaction["Description"]}",show_choices=True, show_default=True,)
+            
+            cat_table: CategoryTable = cat_dict.get(cat_id, None)
+            
+            new_transaction: CreateTransactionBM = CreateTransactionBM(
+                description=transaction["Description"],
+                amount=transaction["Montant de la transaction"],
+                date=transaction["Date de la transaction"],
+                classification_id=cls_id,
+                category_id=cat_id,
+                account_id=cat_table.account.id
+            )
+            
+            
+            
+            transactions.append(TransactionTable(**copy.copy(new_transaction.model_dump())))
 
         # Save all transactions that have been categorized in the database
+        user_services.create_transaction(db, transactions)
 
     # print success transaction
     fprint("Assignment of categories to the transaction was successfully completed.")

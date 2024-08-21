@@ -148,3 +148,22 @@ def get_all_classification(db: Session) -> ScalarResult[ClassificationTable]:
         return classify
     except:
         db.rollback()
+
+
+def get_transaction_by_account_id(
+    db: Session,
+    account_id: int,
+) -> ScalarResult[TransactionTable] | None:
+
+    try:
+
+        query: Select = select(TransactionTable).where(
+            TransactionTable.account_id == account_id
+        )
+
+        account_table: ScalarResult[TransactionTable] = db.scalars(query)
+
+        return account_table
+
+    except:
+        db.rollback()
