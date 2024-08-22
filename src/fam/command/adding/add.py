@@ -13,7 +13,7 @@ from fam import auth
 from fam.command.adding import action
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
-    CategoryTable,
+    SubCategoryTable,
     ClassificationTable,
     TransactionTable,
 )
@@ -75,19 +75,19 @@ def statement(
 
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-        # Get all category
-        categories: ScalarResult[CategoryTable] = user_services.get_all_category(db)
+        # Get all subcategory
+        subcategories: ScalarResult[SubCategoryTable] = user_services.get_all_sub_category(db)
         classifies: ScalarResult[ClassificationTable] = (
             user_services.get_all_classification(db)
         )
 
         # By category build category and classification choice
-        cat_dict: dict[int, CategoryTable] = {}
-        cat_choice: list[str] = []
+        subcat_dict: dict[int, SubCategoryTable] = {}
+        subcat_choice: list[str] = []
         
-        for category in categories:
-            cat_dict.update({category.id: category})
-            cat_choice.append(copy.copy(f"{category.id}: {category.name} ({category.account.name})"))
+        for subcategory in subcategories:
+            subcat_dict.update({subcategory.id: subcategory})
+            subcat_choice.append(copy.copy(f"{subcategory.id}: {subcategory.name}"))
         
     
         class_dict: dict[int, ClassificationTable] = {}
@@ -102,20 +102,20 @@ def statement(
 
         for idx, transaction in df_csv.iterrows():
             # promp question for each transaction
-            print("\n".join(cat_choice))
-            cat_id: int = typer.prompt(type=int, text=f"Select a category for {transaction["Description"]}",show_choices=True, show_default=True,)
+            print("\n".join(subcat_choice))
+            subcat_id: int = typer.prompt(type=int, text=f"Select a category for {transaction["Description"]}",show_choices=True, show_default=True,)
             print("\n".join(class_choice))
             cls_id: int = typer.prompt(type=int, text=f"Select a class for {transaction["Description"]}",show_choices=True, show_default=True,)
             
-            cat_table: CategoryTable = cat_dict.get(cat_id, None)
+            subcat_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
             
             new_transaction: CreateTransactionBM = CreateTransactionBM(
                 description=transaction["Description"],
                 amount=transaction["Montant de la transaction"],
                 date=transaction["Date de la transaction"],
                 classification_id=cls_id,
-                category_id=cat_id,
-                account_id=cat_table.account.id
+                subcategory_id=subcat_id,
+                account_id=subcat_table.category.account.id
             )
             
             

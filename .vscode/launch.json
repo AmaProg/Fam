@@ -57,6 +57,14 @@
       "program": "src/fam/main.py",
       "args": ["expense", "build"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: create subcategory",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["create", "sub-category"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

@@ -1,6 +1,7 @@
 from time import sleep
 from typing import Any
 
+from sqlalchemy import ScalarResult
 import typer
 import string
 import secrets
@@ -38,3 +39,15 @@ def verify_password(plain_password: str, hasded_password: str):
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
+
+def build_choice(data_result: ScalarResult[Any], type: type):
+
+    choice: list = []
+    choice_dict = {}
+
+    for data in data_result:
+        choice.append(f"{data.id}: {data.name}")
+        choice_dict.update({data.id: data})
+
+    return choice, choice_dict

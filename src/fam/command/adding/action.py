@@ -7,7 +7,7 @@ from sqlalchemy import ScalarResult
 import typer
 
 from fam.command.adding import utils
-from fam.database.users.models import CategoryTable, ClassificationTable, TransactionTable
+from fam.database.users.models import SubCategoryTable, ClassificationTable, TransactionTable
 from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum
 from fam.utils import fprint
@@ -16,7 +16,7 @@ from fam.utils import fprint
 def classify_transaction(
     df: DataFrame,
     bank_name: BankEnum,
-    categories: ScalarResult[CategoryTable],
+    categories: ScalarResult[SubCategoryTable],
     class_transaction: ScalarResult[ClassificationTable]
 ) -> list[TransactionTable]:
 
@@ -29,7 +29,7 @@ def classify_transaction(
     transactions: list[TransactionTable] = []
     cat_choice: list[str] = []
     class_choice: list[str] = []
-    cat_dict: dict[int, CategoryTable] = {}
+    cat_dict: dict[int, SubCategoryTable] = {}
     class_dict: dict[int, ClassificationTable] = {}
     
     for category in categories:
@@ -47,7 +47,7 @@ def classify_transaction(
         cat_id: int = typer.prompt(type=int, text=f"{cat_choice}\n\nSelect a category for {transaction["Description"]}",)
         cls_id: int = typer.prompt(type=int, text=f"{class_choice}\n\nSelect a class for {transaction["Description"]}",)
         
-        category_data: CategoryTable | None = cat_dict.get(cat_id, None)
+        category_data: SubCategoryTable | None = cat_dict.get(cat_id, None)
         class_data: ClassificationTable | None = class_dict.get(cls_id, None)
         
         if category_data is None:
@@ -67,7 +67,7 @@ def classify_transaction(
             amount= amount,
             date=date,
             account_id=category_data.account_id,
-            category_id=category_data.id,
+            subcategory_id=category_data.id,
             classification_id=class_data.id,
             
         )

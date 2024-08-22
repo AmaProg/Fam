@@ -3,30 +3,26 @@ from sqlalchemy import select, Select
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from fam.database.models import User
+from fam.database.models import UserTable
 
 
-def get_user_by_fname_n_lname(db: Session, fname: str, lname: str) -> User | None:
+def get_user_by_email(db: Session, user_email: str) -> UserTable | None:
     try:
-        query: Select = select(User).filter_by(
-            first_name=fname,
-            last_name=lname,
-        )
+        query: Select = select(UserTable).where(UserTable.email == user_email)
 
-        user: User = db.scalar(query)
+        user: UserTable = db.scalar(query)
 
         return user
+
     except SQLAlchemyError as e:
         db.rollback()
 
 
-def get_user_by_fname(db: Session, fname: str) -> User | None:
+def get_user_by_email(db: Session, email: str) -> UserTable | None:
     try:
-        query: Select = select(User).filter_by(
-            first_name=fname,
-        )
+        query: Select = select(UserTable).where(UserTable.email == email)
 
-        user: User = db.scalar(query)
+        user: UserTable = db.scalar(query)
 
         return user
     except SQLAlchemyError as e:

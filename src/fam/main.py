@@ -8,12 +8,12 @@ import typer
 from typer import Typer
 from rich import print
 
-from fam.database.models import User
+from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
 from fam.database import services as app_services
 from fam.database.users import services as user_services
 from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import CategoryTable
+from fam.database.users.models import SubCategoryTable
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.add_command import MAIN
 from fam.system.file import File
@@ -85,73 +85,68 @@ def delete(
             raise typer.Abort()
 
 
-@app.command(help="Add bank statements.")
-def add(
-    bank: Annotated[
-        BankEnum,
-        typer.Option(..., "--bank", "-b", case_sensitive=False, help="Bank name."),
-    ] = BankEnum.BMO,
-    product: Annotated[
-        FinancialProductEnum,
-        typer.Option(
-            ..., "--product", "-p", case_sensitive=False, help="Financial product."
-        ),
-    ] = FinancialProductEnum.CREDIT_CARD,
-    statement: Annotated[
-        str,
-        typer.Option("--statement", "-s", help="Bank statement of the product.."),
-    ] = None,
-    month: Annotated[
-        str,
-        typer.Option(
-            "--month", "-m", help="Month of bank statement in which it was produced."
-        ),
-    ] = None,
-    year: Annotated[
-        str,
-        typer.Option(
-            "--year", "-y", help="Year of bank statement in which it was produced."
-        ),
-    ] = None,
-):
+# @app.command(help="Add bank statements.")
+# def add(
+#     bank: Annotated[
+#         BankEnum,
+#         typer.Option(..., "--bank", "-b", case_sensitive=False, help="Bank name."),
+#     ] = BankEnum.BMO,
+#     product: Annotated[
+#         FinancialProductEnum,
+#         typer.Option(
+#             ..., "--product", "-p", case_sensitive=False, help="Financial product."
+#         ),
+#     ] = FinancialProductEnum.CREDIT_CARD,
+#     statement: Annotated[
+#         str,
+#         typer.Option("--statement", "-s", help="Bank statement of the product.."),
+#     ] = None,
+#     month: Annotated[
+#         str,
+#         typer.Option(
+#             "--month", "-m", help="Month of bank statement in which it was produced."
+#         ),
+#     ] = None,
+#     year: Annotated[
+#         str,
+#         typer.Option(
+#             "--year", "-y", help="Year of bank statement in which it was produced."
+#         ),
+#     ] = None,
+# ):
 
-    # Get user session
-    session: dict[str, Any] = get_user_session()
-    database_url: str = session["database_url"]
+#     # Get user session
+#     session: dict[str, Any] = get_user_session()
+#     database_url: str = session["database_url"]
 
-    with get_db(database_url, DatabaseType.USER) as db:
+#     with get_db(database_url, DatabaseType.USER) as db:
 
-        # Categories all transactions
-        all_cat: ScalarResult[CategoryTable] = user_services.get_all_category(db)
+#         # Categories all transactions
+#         all_cat: ScalarResult[SubCategoryTable] = user_services.get_all_category(db)
 
-        # Adds all categorized transactions to the database.
-        action.categorize_transactions(cat_list=all_cat)
+#         # Adds all categorized transactions to the database.
+#         action.categorize_transactions(cat_list=all_cat)
 
-    # print The bank statement has been successfully categorized.
-    fprint("The bank statement has been successfully categorized.")
-
-
-@app.command(help="Allows you to retrieve information on the credit products you have.")
-def credit(bank, product, solde, month, year):
-    pass
+#     # print The bank statement has been successfully categorized.
+#     fprint("The bank statement has been successfully categorized.")
 
 
 @app.command(help="Authenticate a user by providing their username and password.")
 def login(
-    firstname: Annotated[str, typer.Option(prompt=True)],
+    email: Annotated[str, typer.Option(prompt=True, help="Email or username.")],
     password: Annotated[
         str,
         typer.Option(
             prompt=True,
             hide_input=True,
-            help="",
+            help="Password to log in.",
         ),
     ],
 ):
     # Check if the user is in the database
     with get_db() as db:
 
-        user: User = app_services.get_user_by_fname(db, firstname)
+        user: UserTable = app_services.get_user_by_email(db, email)
 
         if user is None:
             fprint("The password or username is invalid.")
@@ -162,17 +157,8 @@ def login(
             raise typer.Abort()
 
     # Create a Session in store info in app dir
-    session: dict[str, Any] = {"session": {}}
-    sess_data: dict[str, Any] = {"user_id": user.id, "database_url": user.database_url}
-    session["session"] = sess_data
+    action.create_session(user)
 
-    app_dir: Path = Path(app_cli.directory.app_dir)
-
-    sess_filename: Path = app_dir / "users" / "session.yaml"
-
-    File.save_file(sess_filename.as_posix(), session, "yaml")
-
-    # print to user the login is success
     fprint("Connection successful.")
 
     pass
@@ -180,11 +166,15 @@ def login(
 
 @app.command(help="Register a new user by providing necessary details.")
 def signup(
-    firstname: Annotated[str, typer.Option(prompt=True)],
-    lastname: Annotated[str, typer.Option(prompt=True)],
+    email: Annotated[str, typer.Option(prompt=True, help="Email or username.")],
     password: Annotated[
         str,
-        typer.Option(prompt=True, confirmation_prompt=True, hide_input=True, help=""),
+        typer.Option(
+            prompt=True,
+            confirmation_prompt=True,
+            hide_input=True,
+            help="Password to sign in.",
+        ),
     ],
 ):
 
@@ -192,7 +182,7 @@ def signup(
         # check if user already exist.
         with get_db() as db:
 
-            user: User = app_services.get_user_by_fname_n_lname(db, firstname, lastname)
+            user: UserTable = app_services.get_user_by_email(db, email)
 
             if user is not None:
 
@@ -206,37 +196,20 @@ def signup(
             user_dir: Path = action.create_new_user_folder(id.hex)
 
             # Create a new sql database for the user.
-            db_id, database_url = action.create_new_database(user_dir)
+            database_url = action.create_new_database(user_dir)
 
             # crypt the password
             hash_pwd: str = utils.hash_password(password)
 
             # create a new user in the app database
             new_user: CreateUser = CreateUser(
-                first_name=firstname,
-                last_name=lastname,
+                email=email,
                 password=hash_pwd,
                 database_url=database_url,
             )
+
             user_services.create_user(db, new_user)
 
-        # save the user path in the config file
-        config_path: str = (Path(app_cli.directory.app_dir) / "config.yaml").as_posix()
-
-        yaml_data: dict[str, Any] = File.read_file(config_path, "yaml")
-
-        users_list: list[dict[str, Any]] | None = yaml_data["users"]
-
-        if users_list is None:
-            users_list = []
-
-        users_list.append({"database": db_id, "path": (user_dir).as_posix()})
-
-        yaml_data["users"] = users_list
-
-        File.save_file(config_path, yaml_data, "yaml")
-
-        # Print that the user folder created successfully.
         fprint("Your account has been successfully created.")
 
     except typer.Abort as e:

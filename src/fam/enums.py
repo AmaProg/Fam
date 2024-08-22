@@ -10,7 +10,7 @@ class FinancialProductEnum(Enum):
     CREDIT_CARD = "credit_card"
 
 
-class CategorySection(Enum):
+class AccountSection(Enum):
     INCOME = "income"
     EXPENSE = "expense"
     ASSET = "asset"

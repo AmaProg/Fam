@@ -17,9 +17,14 @@ class CreateTransactionBM(BaseModel):
     amount: float
     date: int
     account_id: int
-    category_id: int
+    subcategory_id: int
     classification_id: int
 
 
 class CreateClassify(BaseModel):
     name: str
+
+
+class CreateSubCategory(BaseModel):
+    name: str
+    category_id: int

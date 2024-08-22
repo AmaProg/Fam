@@ -1,8 +1,25 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-from sqlalchemy import ForeignKey, Transaction
+from sqlalchemy import ForeignKey
 
 
 UserBase = declarative_base()
+
+
+class AccountTable(UserBase):
+    __tablename__ = "account"
+
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    description: Mapped[str] = mapped_column(nullable=False)
+
+    # Définir la relation avec CategoryTable
+    category: Mapped["CategoryTable"] = relationship(
+        "CategoryTable", back_populates="account"
+    )
+
+    transaction: Mapped["TransactionTable"] = relationship(
+        "TransactionTable", back_populates="account"
+    )
 
 
 class CategoryTable(UserBase):
@@ -24,25 +41,23 @@ class CategoryTable(UserBase):
     transaction: Mapped["TransactionTable"] = relationship(
         "TransactionTable", back_populates="category"
     )
+    sub_category: Mapped["SubCategoryTable"] = relationship(
+        "SubCategoryTable", back_populates="category"
+    )
     # ----- End Relationship -----
 
 
-class AccountTable(UserBase):
-    __tablename__ = "account"
+class SubCategoryTable(UserBase):
+    __tablename__ = "subcategory"
 
-    id: Mapped[int] = mapped_column(
-        nullable=False, autoincrement=True, primary_key=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    description: Mapped[str] = mapped_column(nullable=False)
-
-    # Définir la relation avec CategoryTable
-    category: Mapped["CategoryTable"] = relationship(
-        "CategoryTable", back_populates="account"
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("category.id", ondelete="CASCADE"),
+        nullable=False,
     )
-
-    transaction: Mapped["TransactionTable"] = relationship(
-        "TransactionTable", back_populates="account"
+    category: Mapped["CategoryTable"] = relationship(
+        "CategoryTable", back_populates="sub_category"
     )
 
 
@@ -69,7 +84,7 @@ class TransactionTable(UserBase):
     account_id: Mapped[int] = mapped_column(
         ForeignKey("account.id", ondelete="CASCADE"), nullable=False
     )
-    category_id: Mapped[int] = mapped_column(
+    subcategory_id: Mapped[int] = mapped_column(
         ForeignKey("category.id", ondelete="CASCADE"), nullable=False
     )
     classification_id: Mapped[int] = mapped_column(

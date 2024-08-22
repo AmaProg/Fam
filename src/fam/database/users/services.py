@@ -2,11 +2,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import ScalarResult, Select, select
 from sqlalchemy.exc import SQLAlchemyError
 from fam.database.schemas import CreateUser
-from fam.database.models import User
+from fam.database.models import UserTable
 from fam.database.users.models import (
     AccountTable,
-    CategoryTable,
+    SubCategoryTable,
     ClassificationTable,
+    CategoryTable,
     TransactionTable,
 )
 from fam.database.users.schemas import (
@@ -18,25 +19,26 @@ from fam.database.users.schemas import (
 
 
 def create_user(db: Session, user: CreateUser):
+    try:
 
-    new_user: User = User(**user.model_dump())
+        new_user: UserTable = UserTable(**user.model_dump())
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except SQLAlchemyError as e:
+        print(e)
+        db.rollback()
 
 
 def create_account(db: Session, accounts: list[AccountBM]) -> None:
 
     try:
 
-        # Créer une liste d'objets AccountTable en utilisant une compréhension de liste
         new_accounts = [AccountTable(**account.model_dump()) for account in accounts]
 
-        # Ajouter tous les nouveaux comptes à la session
         db.add_all(new_accounts)
 
-        # Committer les modifications
         db.commit()
 
     except SQLAlchemyError as e:
@@ -48,9 +50,7 @@ def get_category_by_name(
 ) -> ScalarResult[CategoryTable] | None:
 
     try:
-        query: Select = select(CategoryTable).filter_by(
-            category_name=cat_name,
-        )
+        query: Select = select(CategoryTable).where(CategoryTable.name == cat_name)
 
         cat: ScalarResult[CategoryTable] = db.scalars(query)
 
@@ -69,12 +69,19 @@ def get_all_category(db: Session) -> ScalarResult[CategoryTable]:
     return all_cat
 
 
+def get_all_sub_category(db: Session) -> ScalarResult[SubCategoryTable]:
+
+    query: Select = select(SubCategoryTable)
+
+    all_cat: ScalarResult[SubCategoryTable] = db.scalars(query)
+
+    return all_cat
+
+
 def get_account_id_by_name(db: Session, account_name) -> AccountTable | None:
 
     try:
-        query: Select = select(AccountTable).filter_by(
-            name=account_name,
-        )
+        query: Select = select(AccountTable).where(AccountTable.name == account_name)
 
         account: AccountTable = db.scalar(query)
 
@@ -107,31 +114,33 @@ def create_transaction(db: Session, transactions: list[TransactionTable]) -> Non
         print(f"Commit failed: {e}")
 
 
-def create_trans(db: Session) -> None:
+# def create_trans(db: Session) -> None:
+#     try:
+
+#         new_trans: CreateTransactionBM = CreateTransactionBM(
+#             account_id=1,
+#             amount=-5.02,
+#             category_id=1,
+#             classification_id=1,
+#             date=12542558,
+#             description="pomme",
+#         )
+#         db.add(TransactionTable(**new_trans.model_dump()))
+#         db.commit()
+
+#     except SQLAlchemyError as e:
+#         db.rollback()
+#         print(f"Commit failed: {e}")
+
+
+def create_new_classification(db: Session, classifies: list[CreateClassify]):
+
     try:
+        new_classify: list[ClassificationTable] = [
+            ClassificationTable(**classify.model_dump()) for classify in classifies
+        ]
 
-        new_trans: CreateTransactionBM = CreateTransactionBM(
-            account_id=1,
-            amount=-5.02,
-            category_id=1,
-            classification_id=1,
-            date=12542558,
-            description="pomme",
-        )
-        db.add(TransactionTable(**new_trans.model_dump()))
-        db.commit()
-
-    except SQLAlchemyError as e:
-        db.rollback()
-        print(f"Commit failed: {e}")
-
-
-def create_new_classification(db: Session, classify: CreateClassify):
-
-    try:
-        new_classify: ClassificationTable = ClassificationTable(**classify.model_dump())
-
-        db.add(new_classify)
+        db.add_all(new_classify)
         db.commit()
         db.refresh(new_classify)
     except:
@@ -165,5 +174,13 @@ def get_transaction_by_account_id(
 
         return account_table
 
+    except:
+        db.rollback()
+
+
+def create_sub_category(db: Session, sub_categories: list[SubCategoryTable]) -> None:
+    try:
+        db.add_all(sub_categories)
+        db.commit()
     except:
         db.rollback()

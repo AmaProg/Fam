@@ -44,18 +44,27 @@ def build():
                 db, account_id=expense_account.id
             )
         )
+        expense_section: dict[str, float] = {}
+
+        for expense in expense_transaction:
+
+            if expense.category.name in expense_section.keys():
+                expense_section[expense.category.name] += expense.amount
+
+            else:
+                expense_section.update({expense.category.name: expense.amount})
 
         # build expense section
-        data = [
-            {
-                "description": expense.description,
-                "amount": expense.amount,
-                "date": expense.date,
-            }
-            for expense in expense_transaction
-        ]
+        # data = [
+        #     {
+        #         "description": expense.description,
+        #         "amount": expense.amount,
+        #         "date": expense.date,
+        #     }
+        #     for expense in expense_transaction
+        # ]
 
-        df = pd.DataFrame(data=data)
+        df = pd.Series(data=expense_section)
 
-    fprint(df.groupby("description").sum().reset_index())
-    fprint(df)
+    # fprint(df.groupby("description").sum().reset_index())
+    fprint(f"\n{df}")

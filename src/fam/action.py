@@ -1,17 +1,20 @@
 from ast import List
 from pathlib import Path
 import shutil
+from typing import Any
 from pandas import DataFrame
 from rich import print
-from sqlalchemy import ScalarResult, create_engine
+from sqlalchemy import ScalarResult, create_engine, Engine
 from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
 
 from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import AccountTable, CategoryTable, UserBase
+from fam.database.models import UserTable
+from fam.database.users.models import AccountTable, SubCategoryTable, UserBase
 from fam.database.users.schemas import AccountBM, CreateClassify
 from fam.database.users import services as user_services
+from fam.system.file import File
 from fam.utils import fprint
 from fam.cli import app_cli
 
@@ -60,55 +63,76 @@ def delete_app(app_dir_path: Path) -> None:
 
 def create_new_user_folder(id: str) -> Path:
     app_dir: Path = Path(app_cli.directory.app_dir)
+    
     users_folder: Path = app_dir / "users" / id
-    a = users_folder.as_posix()
+    
     users_folder.mkdir(exist_ok=True)
 
     return users_folder
 
-def create_new_database(database_path: Path) -> tuple[str, str]:
+def create_new_database(database_path: Path) -> str:
+    
+    database_url:str =  _generate_database_url(database_path)
+    engine = create_engine(database_url)
     
     try:
-    
-        db_id: UUID = uuid4()
-
-        database_url: str = f"sqlite:///{(database_path / db_id.hex).with_suffix(".db").as_posix() }"
-
-        # Generate DATABASE_URL for the user
-        engin = create_engine(database_url)
-
-
-        # Create the tables if they don't exist
-        UserBase.metadata.create_all(bind=engin)
-
-        # Configure Alembic with the new DATABASE_URL
-        alembic_cfg = Config("alembic.ini")
-        alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-
-        # Apply Alembic migrations
-        command.upgrade(alembic_cfg, "head")
-        
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
-            income: AccountBM = AccountBM( name="income", description="Income account.")
-            expense: AccountBM = AccountBM( name="expense", description="Expense account.")
-            asset: AccountBM = AccountBM( name="asset", description="Asset account.")
-            passive: AccountBM = AccountBM( name="passive", description="Passive account.")
-            
-            accounts: list[AccountBM] = [income, expense, asset, passive]
-            
-            user_services.create_account(db, accounts)
-            user_services.create_new_classification(db, CreateClassify(name="personel"))
-            user_services.create_new_classification(db, CreateClassify(name="family"))
-            
-            fprint("The initialization of the database for the user was successfully created.")
-        
-        
-        return db_id.hex, database_url
-    
+        _create_table(engine)
+        _apply_migrations(database_url)
+        _initialize_default_data(database_url)
+        fprint("The new database was successfully created.")
+    except Exception as e:
+        print(f"Une erreur est survenue lors de la création de la base de données : {e}")
+        raise
     finally:
-        engin.dispose()
+        engine.dispose()
 
-def categorize_transactions(cat_list: ScalarResult[CategoryTable], statement: DataFrame,) -> None:
+    return database_url
+
+def create_session(user: UserTable) -> None:
+    session: dict[str, Any] = {"session": {"user_id": user.id, "database_url": user.database_url}}
+
+    app_dir: Path = Path(app_cli.directory.app_dir)
+
+    sess_filename: Path = app_dir / "users" / "session.yaml"
+
+    File.save_file(sess_filename.as_posix(), session, "yaml")
+    
+
+def categorize_transactions(cat_list: ScalarResult[SubCategoryTable], statement: DataFrame,) -> None:
     # 
     pass
     
+def _generate_database_url(database_path: Path) -> str:
+        db_id: UUID = uuid4()
+
+        database_url: str = f"sqlite:///{(database_path / db_id.hex).with_suffix(".db").as_posix() }"
+        
+        return database_url
+    
+def _create_table(eng: Engine) -> None:
+    UserBase.metadata.create_all(bind=eng)
+    
+def _apply_migrations(database_url: str) -> None:
+        # Configure Alembic with the new DATABASE_URL
+        alembic_cfg = Config("alembic_app.ini")
+        alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+        
+
+        # Apply Alembic migrations
+        command.upgrade(alembic_cfg, "head")
+
+def _initialize_default_data(database_url: str):
+    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+        accounts: list[AccountBM] = [
+            AccountBM( name="income", description="Income account."),
+            AccountBM( name="expense", description="Expense account."),
+            AccountBM( name="asset", description="Asset account."),
+            AccountBM( name="passive", description="Passive account."),
+        ]
+        classifications = [
+                    CreateClassify(name="personel"),
+                    CreateClassify(name="family")
+                ]
+        
+        user_services.create_account(db, accounts)
+        user_services.create_new_classification(db, classifications)
