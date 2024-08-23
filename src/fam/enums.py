@@ -8,6 +8,7 @@ class BankEnum(str, Enum):
 
 class FinancialProductEnum(Enum):
     CREDIT_CARD = "credit card"
+    CHECKING_ACCOUNT = "check account"
 
 
 class AccountSection(Enum):

@@ -46,7 +46,7 @@ def reset(
         else:
 
             msg: str = (
-                "Are you sure you want to reset the application? this action is irreversible"
+                "Are you sure you want to reset the app? this action is irreversible. Furthermore, all users with an account will have their data deleted?"
             )
 
             if typer.confirm(msg):
@@ -114,8 +114,6 @@ def login(
     action.create_session(user)
 
     fprint("Connection successful.")
-
-    pass
 
 
 @app.command(help="Register a new user by providing necessary details.")

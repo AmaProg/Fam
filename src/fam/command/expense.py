@@ -4,10 +4,12 @@ from typer import Typer
 from pandas import DataFrame
 
 import pandas as pd
+import typer
 
 from fam import auth
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import AccountTable, TransactionTable
+from fam.enums import AccountSection
 from fam.utils import fprint
 from fam.database.users import services as user_services
 
@@ -35,8 +37,12 @@ def build():
 
         # Get expense account id from database
         expense_account: AccountTable = user_services.get_account_id_by_name(
-            db, "expense"
+            db, AccountSection.EXPENSE.value
         )
+
+        if expense_account is None:
+            fprint("No expense account was found.")
+            raise typer.Abort()
 
         # Get all transactions with expense account id
         expense_transaction: Sequence[TransactionTable] | None = (
@@ -44,6 +50,11 @@ def build():
                 db, account_id=expense_account.id
             )
         )
+
+        if expense_transaction is None:
+            fprint("No expense transactions were found.")
+            raise typer.Abort()
+
         expense_section: dict[str, float] = {}
 
         for expense in expense_transaction:
@@ -54,17 +65,6 @@ def build():
             else:
                 expense_section.update({expense.account.category.name: expense.amount})
 
-        # build expense section
-        # data = [
-        #     {
-        #         "description": expense.description,
-        #         "amount": expense.amount,
-        #         "date": expense.date,
-        #     }
-        #     for expense in expense_transaction
-        # ]
-
         df = pd.Series(data=expense_section)
 
-    # fprint(df.groupby("description").sum().reset_index())
     fprint(f"\n{df}")
