@@ -1,16 +1,14 @@
 import copy
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 from typing_extensions import Annotated
 from pandas import DataFrame
-from sqlalchemy import ScalarResult
 from typer import Typer
-from tkinter import filedialog
 import typer
-import pandas as pd
 
 from fam import auth
 from fam.command.adding import action
+from fam.command.utils import build_choice, date_to_timestamp_by_bank, show_choice
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
     SubCategoryTable,
@@ -19,7 +17,7 @@ from fam.database.users.models import (
 )
 from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
-from fam.utils import fprint
+from fam.utils import fAborted, fprint
 from fam.database.users import services as user_services
 
 app = Typer(help="Allows you to add items to the folder.")
@@ -29,154 +27,122 @@ add_command: dict[str, Any] = {"app": app, "name": "add"}
 
 @app.command()
 def statement(
-    filename: Annotated[str, typer.Option("--filename", "-f", help="")] = None,
-    product: Annotated[
-        FinancialProductEnum, typer.Option("--product", "-p", help="")
-    ] = None,
+    bank: Annotated[BankEnum, typer.Option('--bank', '-b', help="", prompt="which bank does the bank statement come from?", show_choices=True, case_sensitive=False,),],
+    product: Annotated[FinancialProductEnum, typer.Option("--product", "-p", help="", prompt="What is the financial product?", show_choices=True, case_sensitive=False)],
+    filename: Annotated[str, typer.Option("--filename", "-f", help="")] = "",
 ):
+    try:
+        # Get user session.
+        session = auth.get_user_session()
 
-    # Get user session.
-    session = auth.get_user_session()
+        database_url: str = session["database_url"]
 
-    database_url: str = session["database_url"]
+        # Get csv file and convert to dataframe
+        csv_filename: str = action.open_dialog_file(bank) if filename == "" else filename
 
-    # Ask the user for which financial product the statement is
-    if product is None:
-        product_name: FinancialProductEnum = typer.prompt(
-            type=FinancialProductEnum,
-            text=f"What is the financial product {[choice.name.lower() for choice in FinancialProductEnum]}? ",
-            show_choices=True,
-        )
-
-    # Ask the user which bank the statement comes from.
-    bank_name: BankEnum = typer.prompt(
-        type=BankEnum,
-        text=f"which bank does the bank statement come from {[choice.name.lower() for choice in BankEnum]}? ",
-        show_choices=False,
-    )
-
-    # Get csv file and convert to dataframe
-    if filename is None:
-        # open dialogFile
-        csv_filename: str = filedialog.askopenfilename(
-            title=f"select the statement for the {bank_name.name} bank",
-            filetypes=(("CSV files", "*.csv"),),
-        )
         if csv_filename == "":
             raise typer.Abort()
-    else:
-        csv_filename = filename
 
-    if Path(csv_filename).suffix.lower() != ".csv":
-        fprint("Invalid file format: not a CSV.")
-        raise typer.Abort()
+        if Path(csv_filename).suffix.lower() != ".csv":
+            fprint("Invalid file format: not a CSV.")
+            raise typer.Abort()
 
-    df_csv: DataFrame = pd.read_csv(csv_filename, skiprows=1)
+        df_csv: DataFrame | None = action.read_csv_by_bank(csv_filename, bank)
 
-    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+        if df_csv is None:
+            fprint(f"The {bank.value} bank csv file has been corrupted.")
+            raise typer.Abort()
 
-        # Get all subcategory
-        subcategories: ScalarResult[SubCategoryTable] = user_services.get_all_sub_category(db)
-        classifies: ScalarResult[ClassificationTable] = (
-            user_services.get_all_classification(db)
-        )
 
-        # By category build category and classification choice
-        subcat_dict: dict[int, SubCategoryTable] = {}
-        subcat_choice: list[str] = []
-        
-        for subcategory in subcategories:
-            subcat_dict.update({subcategory.id: subcategory})
-            subcat_choice.append(copy.copy(f"{subcategory.id}: {subcategory.name}"))
-        
-    
-        class_dict: dict[int, ClassificationTable] = {}
-        class_choice: list[str] = []
-        
-        for classify in classifies:
-            class_dict.update({classify.id: classify})
-            class_choice.append(f"{classify.id} : {classify.name}")
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-        # Classify all transaction
-        transactions: list[TransactionTable] = []
 
-        for idx, transaction in df_csv.iterrows():
-            # promp question for each transaction
-            print("\n".join(subcat_choice))
-            subcat_id: int = typer.prompt(type=int, text=f"Select a category for {transaction["Description"]}",show_choices=True, show_default=True,)
-            print("\n".join(class_choice))
-            cls_id: int = typer.prompt(type=int, text=f"Select a class for {transaction["Description"]}",show_choices=True, show_default=True,)
+            # Get all subcategory
+            subcategories: Sequence[SubCategoryTable] | None = user_services.get_all_subcategory(db)
             
-            subcat_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
+            if subcategories is None or len(subcategories) == 0:
+                fprint("Please create a subcategory before adding a bank statement.")
+                raise typer.Abort()
             
-            new_transaction: CreateTransactionBM = CreateTransactionBM(
-                description=transaction["Description"],
-                amount=transaction["Montant de la transaction"],
-                date=transaction["Date de la transaction"],
-                classification_id=cls_id,
-                subcategory_id=subcat_id,
-                account_id=subcat_table.category.account.id
+            
+            classifies: Sequence[ClassificationTable] | None = (
+                user_services.get_all_classification(db)
             )
             
-            
-            
-            transactions.append(TransactionTable(**copy.copy(new_transaction.model_dump())))
+            if classifies is None:
+                fprint("An error occurred while retrieving the transaction classification. Please recreate classifications again.")
+                raise typer.Abort()
 
-        # Save all transactions that have been categorized in the database
-        user_services.create_transaction(db, transactions)
+            # By category build category and classification choice
+            subcat_dict, subcat_choice = build_choice(subcategories)
+            subcat_choice.append("0: skip")
+            class_dict, class_choice = build_choice(classifies)
 
-    # print success transaction
-    fprint("Assignment of categories to the transaction was successfully completed.")
+            # Classify all transaction
+            transactions: list[TransactionTable] = []
 
-    # # Get de user session
-    # session = auth.get_user_session()
+            for idx, transaction in df_csv.iterrows():
+                
+                # promp question for each transaction
+                
+                show_choice(subcat_choice)
+                subcat_id: int = typer.prompt(type=int, text=f"Select a category for {transaction["Description"]}")
+                
+                if subcat_id == 0:
+                    continue
+                
+                show_choice(class_choice)
+                cls_id: int = typer.prompt(type=int, text=f"Select a class for {transaction["Description"]}")
+                
+                sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
+                
+                if sub_table is None:
+                    raise typer.Abort
+                
+                new_transaction: CreateTransactionBM = CreateTransactionBM(
+                    description=transaction["Description"],
+                    product=product.value,
+                    amount=transaction["Montant de la transaction"],
+                    date=date_to_timestamp_by_bank(str(transaction["Date de la transaction"]), bank),
+                    bank_name=bank.value,
+                    classification_id=cls_id,
+                    subcategory_id=subcat_id,
+                    account_id=sub_table.category.account.id
+                )
+                
+                trans_table: TransactionTable | None =  user_services.get_transaction_by_date_desc_bank(
+                    db=db,
+                    date=new_transaction.date,
+                    desc=new_transaction.description,
+                    bank=bank,
+                )
+                
+                if trans_table is not None:
+                    if typer.confirm(text=f"The following description {new_transaction.description} already exists. Do you want to replace it?"):
+                        user_services.update_transaction_by_desc(db, new_transaction.description, new_transaction)
+                        continue
+                    else:
+                        continue
+                        
+                
+                
+                transactions.append(TransactionTable(**copy.copy(new_transaction.model_dump())))
+                
 
-    # database_url: str = session["database_url"]
+            # Save all transactions that have been categorized in the database
+            user_services.create_transaction(db, transactions)
 
-    # # Ask the user which bank the statement comes from.
-    # bank_name: BankEnum = typer.prompt(
-    #     type=BankEnum,
-    #     text=f"which bank does the bank statement come from {[choice.name.lower() for choice in BankEnum]}? ",
-    #     show_choices=False,
-    # )
+        # print success transaction
+        fprint("Assignment of categories to the transaction was successfully completed.")
+    
+    except FileNotFoundError:
+        fprint("Please log in")
+        fAborted()
+        
+    except typer.Abort as e:
+        fAborted()
+    
+    except Exception as e:
+        fprint(e)
 
-    # if filename == None:
 
-    #     # open dialogFile
-    #     csv_filename: str = filedialog.askopenfilename(
-    #         title=f"select the statement for the {bank_name.name} bank",
-    #         filetypes=(("CSV files", "*.csv"),),
-    #     )
-
-    #     if csv_filename == "":
-    #         raise typer.Abort()
-    # else:
-    #     csv_filename = filename
-
-    # # check if it is cs file.
-    # if Path(csv_filename).suffix.lower() != ".csv":
-    #     fprint("Invalid file format: not a CSV.")
-    #     raise typer.Abort()
-
-    # df_csv: DataFrame = pd.read_csv(csv_filename, skiprows=1)
-
-    # # assingn category for all transaction
-    # with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
-
-    #     # Get categories list
-    #     cat_list: ScalarResult[CategoryTable] = user_services.get_all_category(db)
-    #     classify: ScalarResult[ClassificationTable] = (
-    #         user_services.get_all_classification(db)
-    #     )
-
-    #     transactions: list[TransactionTable] = action.classify_transaction(
-    #         df=df_csv,
-    #         bank_name=bank_name,
-    #         categories=cat_list,
-    #         class_transaction=classify,
-    #     )
-
-    #     # save de assignation on the database
-    #     user_services.create_transaction(db, transactions)
-
-    pass

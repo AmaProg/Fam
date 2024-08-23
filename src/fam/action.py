@@ -1,17 +1,15 @@
-from ast import List
 from pathlib import Path
 import shutil
 from typing import Any
-from pandas import DataFrame
 from rich import print
-from sqlalchemy import ScalarResult, create_engine, Engine
+from sqlalchemy import  create_engine, Engine
 from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
 
 from fam.database.db import DatabaseType, get_db
 from fam.database.models import UserTable
-from fam.database.users.models import AccountTable, SubCategoryTable, UserBase
+from fam.database.users.models import  UserBase
 from fam.database.users.schemas import AccountBM, CreateClassify
 from fam.database.users import services as user_services
 from fam.system.file import File
@@ -97,10 +95,6 @@ def create_session(user: UserTable) -> None:
 
     File.save_file(sess_filename.as_posix(), session, "yaml")
     
-
-def categorize_transactions(cat_list: ScalarResult[SubCategoryTable], statement: DataFrame,) -> None:
-    # 
-    pass
     
 def _generate_database_url(database_path: Path) -> str:
         db_id: UUID = uuid4()
@@ -114,7 +108,7 @@ def _create_table(eng: Engine) -> None:
     
 def _apply_migrations(database_url: str) -> None:
         # Configure Alembic with the new DATABASE_URL
-        alembic_cfg = Config("alembic_app.ini")
+        alembic_cfg = Config("alembic_users.ini")
         alembic_cfg.set_main_option("sqlalchemy.url", database_url)
         
 

@@ -1,7 +1,5 @@
 from copy import copy
-from pathlib import Path
-from random import choice
-from typing import Any
+from typing import Any, Sequence
 from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
 from typer import Typer
@@ -10,14 +8,13 @@ from rich import print
 import typer
 
 from fam import auth
-from fam.cli import app_cli
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import AccountTable, CategoryTable, SubCategoryTable
 from fam.database.users.schemas import CategoryBM, CreateSubCategory
 from fam.enums import AccountSection
-from fam.system.file import File
-from fam.utils import build_choice, fAborted, fprint
+from fam.utils import fAborted, fprint
 from fam.database.users import services as user_services
+from fam.command.utils import build_choice
 
 app = Typer(
     help="Creates bank accounts and expense or income categories.",
@@ -73,19 +70,14 @@ def category(
         with get_db(database_url, DatabaseType.USER) as db:
 
             # Check if the category is alredy in the database
-            categories: ScalarResult[CategoryTable] | None = (
-                user_services.get_category_by_name(db, name)
+            cat_table: CategoryTable | None = user_services.get_category_by_name(
+                db,
+                name,
             )
 
-            if categories is not None:
-                for idx, category in enumerate(categories):
-
-                    if (
-                        category.name == name
-                        and category.account.name == account_type.value
-                    ):
-                        fprint("The category is already present.")
-                        raise typer.Abort()
+            if cat_table is not None:
+                fprint("The category is already present.")
+                raise typer.Abort()
 
             # add category
             account_table: AccountTable | None = user_services.get_account_id_by_name(
@@ -95,13 +87,13 @@ def category(
             if account_table is None:
                 raise typer.Abort()
 
-            cat: CategoryBM = CategoryBM(
+            cat_base_model: CategoryBM = CategoryBM(
                 name=name,
                 description=desc,
                 account_id=account_table.id,
             )
 
-            user_services.create_new_category(db, cat)
+            user_services.create_new_category(db, cat_base_model)
 
         # print success added category
         fprint("The category was added successfully.")
@@ -116,47 +108,56 @@ def category(
 
 
 @app.command()
-def sub_category():
+def subcategory():
+    try:
+        # Get user session
+        session = auth.get_user_session()
 
-    # Get user session
-    session = auth.get_user_session()
+        database_url = session["database_url"]
 
-    database_url = session["database_url"]
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+            # Get all category and build choice
+            cat: Sequence[CategoryTable] = user_services.get_all_category(db)
 
-        # Get all category
-        category: ScalarResult[SubCategoryTable] = user_services.get_all_category(db)
-        # build category choice
-        cat_choice, cat_dict = build_choice(category, SubCategoryTable)
+            if cat is None or len(cat) == 0:
+                fprint("Please create a category before adding a bank statement.")
+                raise typer.Abort
 
-        # promp
-        cat_id = typer.prompt(
-            type=int,
-            text=f"{cat_choice}\nSelect de category",
-            show_choices=True,
-        )
+            cat_dict, cat_choice = build_choice(cat)
 
-        category_table: SubCategoryTable | None = cat_dict.get(cat_id, None)
+            typer.echo(cat_choice)
+            cat_id = typer.prompt(type=int, text="\nSelect de category")
 
-        sub_cat: str = typer.prompt(
-            type=str,
-            text="Please enter the subcategories separating them with (,)",
-        )
+            category_table: CategoryTable | None = cat_dict.get(cat_id, None)
 
-        list_sub_cat: list = sub_cat.split(",")
-
-        subcategories: list[SubCategoryTable] = []
-
-        for idx, sub in enumerate(list_sub_cat):
-            new_sub_cat: CreateSubCategory = CreateSubCategory(
-                name=sub,
-                category_id=category_table.id,  # type: ignore
+            ans: str = typer.prompt(
+                type=str, text="Please enter the subcategories separating them with (,)"
             )
 
-            subcategories.append(SubCategoryTable(**copy(new_sub_cat.model_dump())))
+            list_sub_cat: list = ans.split(",")
 
-        # Save category in the database
-        user_services.create_sub_category(db, subcategories)
+            subcategories: list[SubCategoryTable] = []
 
-    fprint("The categories have been added successfully.")
+            for idx, sub in enumerate(list_sub_cat):
+                new_sub_cat: CreateSubCategory = CreateSubCategory(
+                    name=sub,
+                    category_id=category_table.id,  # type: ignore
+                )
+
+                subcategories.append(SubCategoryTable(**copy(new_sub_cat.model_dump())))
+
+            # Save category in the database
+            user_services.create_subcategory(db, subcategories)
+
+        fprint("The subcategories have been added successfully.")
+
+    except FileNotFoundError:
+        fprint("Please log in")
+        fAborted()
+
+    except typer.Abort:
+        fAborted()
+
+    except Exception as e:
+        fprint(e)

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 from sqlalchemy import ScalarResult, Transaction
 from typer import Typer
 from pandas import DataFrame
@@ -39,7 +39,7 @@ def build():
         )
 
         # Get all transactions with expense account id
-        expense_transaction: ScalarResult[TransactionTable] | None = (
+        expense_transaction: Sequence[TransactionTable] | None = (
             user_services.get_transaction_by_account_id(
                 db, account_id=expense_account.id
             )
@@ -48,11 +48,11 @@ def build():
 
         for expense in expense_transaction:
 
-            if expense.category.name in expense_section.keys():
-                expense_section[expense.category.name] += expense.amount
+            if expense.account.category.name in expense_section.keys():
+                expense_section[expense.account.category.name] += expense.amount
 
             else:
-                expense_section.update({expense.category.name: expense.amount})
+                expense_section.update({expense.account.category.name: expense.amount})
 
         # build expense section
         # data = [

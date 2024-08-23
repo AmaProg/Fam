@@ -7,7 +7,7 @@ class BankEnum(str, Enum):
 
 
 class FinancialProductEnum(Enum):
-    CREDIT_CARD = "credit_card"
+    CREDIT_CARD = "credit card"
 
 
 class AccountSection(Enum):

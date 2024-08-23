@@ -63,7 +63,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "src/fam/main.py",
-      "args": ["create", "sub-category"],
+      "args": ["create", "subcategory"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]

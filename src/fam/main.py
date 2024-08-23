@@ -1,7 +1,5 @@
-from typing import Any
 from uuid import UUID, uuid4
 from pathlib import Path
-from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
 
 import typer
@@ -12,13 +10,9 @@ from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
 from fam.database import services as app_services
 from fam.database.users import services as user_services
-from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import SubCategoryTable
-from fam.enums import BankEnum, FinancialProductEnum
+from fam.database.db import get_db
 from fam.add_command import MAIN
-from fam.system.file import File
 from fam.utils import fAborted, fprint
-from fam.auth import get_user_session
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
@@ -85,55 +79,15 @@ def delete(
             raise typer.Abort()
 
 
-# @app.command(help="Add bank statements.")
-# def add(
-#     bank: Annotated[
-#         BankEnum,
-#         typer.Option(..., "--bank", "-b", case_sensitive=False, help="Bank name."),
-#     ] = BankEnum.BMO,
-#     product: Annotated[
-#         FinancialProductEnum,
-#         typer.Option(
-#             ..., "--product", "-p", case_sensitive=False, help="Financial product."
-#         ),
-#     ] = FinancialProductEnum.CREDIT_CARD,
-#     statement: Annotated[
-#         str,
-#         typer.Option("--statement", "-s", help="Bank statement of the product.."),
-#     ] = None,
-#     month: Annotated[
-#         str,
-#         typer.Option(
-#             "--month", "-m", help="Month of bank statement in which it was produced."
-#         ),
-#     ] = None,
-#     year: Annotated[
-#         str,
-#         typer.Option(
-#             "--year", "-y", help="Year of bank statement in which it was produced."
-#         ),
-#     ] = None,
-# ):
-
-#     # Get user session
-#     session: dict[str, Any] = get_user_session()
-#     database_url: str = session["database_url"]
-
-#     with get_db(database_url, DatabaseType.USER) as db:
-
-#         # Categories all transactions
-#         all_cat: ScalarResult[SubCategoryTable] = user_services.get_all_category(db)
-
-#         # Adds all categorized transactions to the database.
-#         action.categorize_transactions(cat_list=all_cat)
-
-#     # print The bank statement has been successfully categorized.
-#     fprint("The bank statement has been successfully categorized.")
-
-
 @app.command(help="Authenticate a user by providing their username and password.")
 def login(
-    email: Annotated[str, typer.Option(prompt=True, help="Email or username.")],
+    email: Annotated[
+        str,
+        typer.Option(
+            prompt=True,
+            help="Email or username.",
+        ),
+    ],
     password: Annotated[
         str,
         typer.Option(

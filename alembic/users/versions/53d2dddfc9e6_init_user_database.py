@@ -1,8 +1,8 @@
-"""Create Financial Tables
+"""Init user database
 
-Revision ID: dfb6706cc6ae
+Revision ID: 53d2dddfc9e6
 Revises: 
-Create Date: 2024-08-22 00:02:04.633726
+Create Date: 2024-08-22 12:34:42.848543
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dfb6706cc6ae'
+revision: str = '53d2dddfc9e6'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -42,6 +42,7 @@ def upgrade() -> None:
     op.create_table('subcategory',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -49,12 +50,12 @@ def upgrade() -> None:
     op.create_table('transaction',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('description', sa.String(), nullable=True),
+    sa.Column('product', sa.String(), nullable=False),
     sa.Column('amount', sa.Float(), nullable=True),
     sa.Column('date', sa.Integer(), nullable=True),
-    sa.Column('account_id', sa.Integer(), nullable=False),
+    sa.Column('bank_name', sa.String(), nullable=False),
     sa.Column('subcategory_id', sa.Integer(), nullable=False),
     sa.Column('classification_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['account_id'], ['account.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['classification_id'], ['classification.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['subcategory_id'], ['category.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

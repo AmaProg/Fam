@@ -11,7 +11,5 @@
  "python.analysis.typeCheckingMode": "basic",
  "python.analysis.autoImportCompletions": true,
  "editor.tabSize": 4,
- "python.envFile": "${workspaceFolder}/.env-pythonpath",
-
-
+ "python.envFile": "${workspaceFolder}/.env-pythonpath"
 }
