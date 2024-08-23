@@ -2,3 +2,5 @@
 *pycache*
 .pytest_cache
 *-journal*
+*main.build*
+*main.dist*

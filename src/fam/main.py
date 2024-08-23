@@ -157,7 +157,7 @@ def signup(
             new_user: CreateUser = CreateUser(
                 email=email,
                 password=hash_pwd,
-                database_url=database_url,
+                database_url=database_url, 
             )
 
             user_services.create_user(db, new_user)
