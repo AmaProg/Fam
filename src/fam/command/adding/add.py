@@ -112,6 +112,7 @@ def statement(
                 product=product,
                 bank=bank,
                 db=db,
+                database_url=database_url,
             )
 
             # Save all transactions that have been categorized in the database

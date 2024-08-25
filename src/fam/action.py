@@ -7,8 +7,12 @@ from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
 
+import typer
+
+from fam import utils
 from fam.database.db import DatabaseType, get_db
 from fam.database.models import UserTable
+from fam.database.schemas import CreateUser
 from fam.database.users.models import  UserBase
 from fam.database.users.schemas import AccountBM, CreateClassify
 from fam.database.users import services as user_services
@@ -80,7 +84,7 @@ def create_new_database(database_path: Path) -> str:
         fprint("The new database was successfully created.")
     except Exception as e:
         print(f"Une erreur est survenue lors de la création de la base de données : {e}")
-        raise
+        raise typer.Abort()
     finally:
         engine.dispose()
 
@@ -94,12 +98,11 @@ def create_session(user: UserTable) -> None:
     sess_filename: Path = app_dir / "users" / "session.yaml"
 
     File.save_file(sess_filename.as_posix(), session, "yaml")
-    
-    
+     
 def _generate_database_url(database_path: Path) -> str:
         db_id: UUID = uuid4()
 
-        database_url: str = f"sqlite:///{(database_path / db_id.hex).with_suffix(".db").as_posix() }"
+        database_url: str = f"sqlite:///{(database_path / "db" / db_id.hex).with_suffix(".db").as_posix() }"
         
         return database_url
     
@@ -130,3 +133,52 @@ def _initialize_default_data(database_url: str):
         
         user_services.create_account(db, accounts)
         user_services.create_new_classification(db, classifications)
+
+def create_file(user_folder: Path) -> None:
+    filename: list[str] = [
+        "transaction_rule.yaml"
+    ]
+    
+    for file in filename:
+        (user_folder / file).touch()
+        
+def create_folder(user_folder: Path) -> None:
+    foldername: list[str] = [
+        "db"
+    ]
+    
+    for folder in foldername:
+        (user_folder / folder).mkdir()
+    
+    
+def init_user_workspace(id: UUID) -> str:
+    
+    # Create the user folder with unique ID.
+    user_dir: Path = create_new_user_folder(id.hex)
+    
+    create_file(user_dir)
+    
+    create_folder(user_dir)
+    
+    # Create a new sql database for the user.
+    database_url = create_new_database(user_dir)
+    
+    return database_url
+
+def init_user_account(user_email: str, user_pwd: str) -> CreateUser:
+    # Create a unique ID.
+    id: UUID = uuid4()
+    
+    database_url: str = init_user_workspace(id)
+
+    # crypt the password
+    hash_pwd: str = utils.hash_password(user_pwd)
+    
+    # create a new user in the app database
+    new_user: CreateUser = CreateUser(
+        email=user_email,
+        password=hash_pwd,
+        database_url=database_url, 
+    )
+    
+    return new_user

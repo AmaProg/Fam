@@ -1,4 +1,3 @@
-from uuid import UUID, uuid4
 from pathlib import Path
 from typing_extensions import Annotated
 
@@ -131,9 +130,10 @@ def signup(
 ):
 
     try:
-        # check if user already exist.
+
         with get_db() as db:
 
+            # check if user already exist.
             user: UserTable = app_services.get_user_by_email(db, email)
 
             if user is not None:
@@ -141,24 +141,7 @@ def signup(
                 fprint("The user already exists.")
                 raise typer.Abort()
 
-            # Create a unique ID.
-            id: UUID = uuid4()
-
-            # Create the user folder with unique ID.
-            user_dir: Path = action.create_new_user_folder(id.hex)
-
-            # Create a new sql database for the user.
-            database_url = action.create_new_database(user_dir)
-
-            # crypt the password
-            hash_pwd: str = utils.hash_password(password)
-
-            # create a new user in the app database
-            new_user: CreateUser = CreateUser(
-                email=email,
-                password=hash_pwd,
-                database_url=database_url, 
-            )
+            new_user: CreateUser = action.init_user_account(email, password)
 
             user_services.create_user(db, new_user)
 

@@ -1,3 +1,4 @@
+from pathlib import Path
 from time import sleep
 from typing import Any
 
@@ -39,3 +40,9 @@ def verify_password(plain_password: str, hasded_password: str):
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
+
+def get_user_dir_from_database_url(database_url: str) -> Path:
+    new_database_path = database_url.replace("sqlite:/", "")
+
+    return Path(new_database_path).parent.parent
