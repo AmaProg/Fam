@@ -43,6 +43,6 @@ def hash_password(password: str) -> str:
 
 
 def get_user_dir_from_database_url(database_url: str) -> Path:
-    new_database_path = database_url.replace("sqlite:/", "")
+    new_database_path = database_url.replace("sqlite:///", "")
 
     return Path(new_database_path).parent.parent

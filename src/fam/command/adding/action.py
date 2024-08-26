@@ -57,27 +57,21 @@ def add_transaction_to_rule_file(
 ) -> None:
     try:
         trans_file: Path = get_transaction_rule_file(database_url)
-        content: dict[str, Any] | None = File.read_yaml_file(trans_file.as_posix())
 
-        data: dict[str, Any] = {}
+        content: dict[str, Any] = File.read_yaml_file(trans_file.as_posix()) or {}
 
-        if content is None:
-            data.update({"rule": []})
-
-        data_rule_list: list[dict[str, Any]] = data["rule"]
+        data_rule_list: list[dict[str, Any]] = content.get("rule", [])
 
         data_rule_list.append(trans_base_model.model_dump())
 
-        data["rule"] = data_rule_list
+        File.save_yaml_file(trans_file.as_posix(), {"rule": data_rule_list})
 
-        File.save_yaml_file(trans_file.as_posix(), data)
-
-    except:
-        pass
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def classify_transaction_manually(
-    df: DataFrame,
+    transaction,
     subcat_choice: list[str],
     class_choice: list[str],
     subcat_dict: dict[int, SubCategoryTable],
@@ -86,76 +80,74 @@ def classify_transaction_manually(
     bank_ins: kbank.BANK_INSTANCE_TYPE,
     db: Session,
     database_url: str,
-) -> CreateTransactionBM:
+) -> CreateTransactionBM | None:
     # Classify all transaction
 
-    for idx, transaction in df.iterrows():
+    # show the message to select a subcategory.
+    show_choice(subcat_choice)
+    subcat_id: int = typer.prompt(
+        type=int,
+        text=f"Select a category for {transaction[bank_ins.description]}",
+    )
 
-        # show the message to select a subcategory.
-        show_choice(subcat_choice)
-        subcat_id: int = typer.prompt(
-            type=int,
-            text=f"Select a category for {transaction[bank_ins.description]}",
+    if subcat_id == 0:
+        return None
+
+    # show the message to select a classification.
+    show_choice(class_choice)
+    cls_id: int = typer.prompt(
+        type=int,
+        text=f"Select a class for {transaction[bank_ins.description]}",
+    )
+
+    sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
+
+    if sub_table is None:
+        raise typer.Abort()
+
+    new_transaction: CreateTransactionBM = CreateTransactionBM(
+        description=transaction[bank_ins.description],
+        product=product.value,
+        amount=transaction[bank_ins.transaction_amount],
+        date=date_to_timestamp_by_bank(
+            str(transaction[bank_ins.transaction_date]), bank
+        ),
+        bank_name=bank.value,
+        classification_id=cls_id,
+        subcategory_id=subcat_id,
+        account_id=sub_table.category.account.id,
+    )
+
+    trans_table: TransactionTable | None = (
+        user_services.get_transaction_by_date_desc_bank(
+            db=db,
+            date=new_transaction.date,
+            desc=new_transaction.description,
+            bank=bank,
         )
+    )
 
-        if subcat_id == 0:
-            continue
-
-        # show the message to select a classification.
-        show_choice(class_choice)
-        cls_id: int = typer.prompt(
-            type=int,
-            text=f"Select a class for {transaction[bank_ins.description]}",
-        )
-
-        sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
-
-        if sub_table is None:
-            raise typer.Abort
-
-        # Ask the user if they want to classify the transaction automatically
-        # for next time.
-
+    if trans_table is not None:
         if typer.confirm(
-            "Do you want the next time you see the transaction to be filed automatically?"
+            text=f"The following description {new_transaction.description} already exists. Do you want to replace it?"
         ):
-            add_transaction_to_rule_file(
-                database_url, transaction[bank_ins.description]
+            user_services.update_transaction_by_desc(
+                db, new_transaction.description, new_transaction
             )
-            fprint("The transaction has been successfully classified.")
+            return None
+        else:
+            return None
 
-        new_transaction: CreateTransactionBM = CreateTransactionBM(
-            description=transaction[bank_ins.description],
-            product=product.value,
-            amount=transaction[bank_ins.transaction_amount],
-            date=date_to_timestamp_by_bank(
-                str(transaction[bank_ins.transaction_date]), bank
-            ),
-            bank_name=bank.value,
-            classification_id=cls_id,
-            subcategory_id=subcat_id,
-            account_id=sub_table.category.account.id,
+    # Ask the user if they want to classify the transaction automatically
+    # for next time.
+    if typer.confirm(
+        "Do you want the next time you see the transaction to be filed automatically?"
+    ):
+        add_transaction_to_rule_file(
+            database_url=database_url,
+            trans_base_model=new_transaction,
         )
-
-        trans_table: TransactionTable | None = (
-            user_services.get_transaction_by_date_desc_bank(
-                db=db,
-                date=new_transaction.date,
-                desc=new_transaction.description,
-                bank=bank,
-            )
-        )
-
-        if trans_table is not None:
-            if typer.confirm(
-                text=f"The following description {new_transaction.description} already exists. Do you want to replace it?"
-            ):
-                user_services.update_transaction_by_desc(
-                    db, new_transaction.description, new_transaction
-                )
-                continue
-            else:
-                continue
+        fprint("The transaction has been successfully classified.")
 
     return new_transaction
 
@@ -166,26 +158,25 @@ def get_transaction_from_rules_file(
     product: FinancialProductEnum,
     bank: BankEnum,
 ) -> CreateTransactionBM | None:
+
     trans_file: Path = get_transaction_rule_file(database_url)
-    content: dict[str, list[CreateTransactionBM]] | None = File.read_yaml_file(
-        trans_file.as_posix()
+
+    content: dict[str, list[dict[str, Any]]] = (
+        File.read_yaml_file(trans_file.as_posix()) or {}
     )
 
-    if content is None:
-        raise typer.Abort()
-
-    rules: list[CreateTransactionBM] | None = content["rule"]
+    rules: list[dict[str, Any]] = content.get("rule", [])
 
     for rule in rules:
 
         if all(
             [
-                rule.description == trans_desc,
-                rule.product == product.value,
-                rule.bank_name == bank.value,
+                rule.get("description", None) == trans_desc,
+                rule.get("product", None) == product.value,
+                rule.get("bank_name", None) == bank.value,
             ]
         ):
-            return rule
+            return CreateTransactionBM(**rule)
 
     return None
 
@@ -208,7 +199,7 @@ def classify_transaction_auto(
     if old_transaction is None:
         return None
 
-    transaction = CreateTransactionBM(
+    transaction_classified = CreateTransactionBM(
         description=old_transaction.description,
         product=old_transaction.product,
         amount=transaction[bank_ins.transaction_amount],
@@ -221,7 +212,7 @@ def classify_transaction_auto(
         account_id=old_transaction.account_id,
     )
 
-    return transaction
+    return transaction_classified
 
 
 def is_transaction_auto_classifiable(
@@ -232,7 +223,7 @@ def is_transaction_auto_classifiable(
     product: FinancialProductEnum,
 ) -> bool:
 
-    user_dir: Path = get_user_dir_from_database_url(database_url).parent.parent
+    user_dir: Path = get_user_dir_from_database_url(database_url)
 
     trans_file: Path = user_dir / "transaction_rule.yaml"
 
@@ -241,20 +232,23 @@ def is_transaction_auto_classifiable(
     if content is None:
         return False
 
-    rules: list[dict[str, CreateTransactionBM]] = content["rule"]
+    # Prepare comparison values
+    trans_desc = trans[bank_ins.description]
+    bank_name = bank.value
+    financial_product = product.value
 
-    for idx, rule in enumerate(rules):
-        for key in rule.keys():
-            data = rule[key]
+    rules_list: list[dict[str, Any]] = content.get("rule", [])
 
-            if all(
-                [
-                    trans[bank_ins.description] == data.description,
-                    bank.value == data.bank_name,
-                    product.value == data.product,
-                ]
-            ):
-                return True
+    for idx, rule in enumerate(rules_list):
+
+        if all(
+            [
+                trans_desc == rule.get("description", None),
+                bank_name == rule.get("bank_name", None),
+                financial_product == rule.get("product", None),
+            ]
+        ):
+            return True
 
     return False
 
@@ -308,11 +302,14 @@ def classify_transactions(
             bank_ins=bank_ins,
             class_choice=class_choice,
             database_url=database_url,
-            df=df,
+            transaction=transaction,
             product=product,
             subcat_choice=subcat_choice,
             subcat_dict=subcat_dict,
         )
+
+        if new_transaction is None:
+            continue
 
         # # Classify all transaction
         # transactions: list[TransactionTable] = []

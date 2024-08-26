@@ -44,7 +44,7 @@ def init_app_dir() -> None:
 
             app_cli.directory.copy_folder(app, Path(app_cli.directory.app_dir))
 
-            init_file.touch()
+            init_file.touch(exist_ok=False)
 
             fprint("The app was successfully created")
 
@@ -64,13 +64,18 @@ def delete_app(app_dir_path: Path) -> None:
     fprint(msg)
 
 def create_new_user_folder(id: str) -> Path:
-    app_dir: Path = Path(app_cli.directory.app_dir)
+    try:
+        app_dir: Path = Path(app_cli.directory.app_dir)
     
-    users_folder: Path = app_dir / "users" / id
-    
-    users_folder.mkdir(exist_ok=True)
+        users_folder: Path = app_dir / "users" / id
+        
+        users_folder.mkdir(exist_ok=False)
 
-    return users_folder
+        return users_folder
+    
+    except Exception as e:
+        print(f"Error creating folder {e}")
+        raise typer.Abort()
 
 def create_new_database(database_path: Path) -> str:
     
@@ -135,21 +140,29 @@ def _initialize_default_data(database_url: str):
         user_services.create_new_classification(db, classifications)
 
 def create_file(user_folder: Path) -> None:
-    filename: list[str] = [
-        "transaction_rule.yaml"
-    ]
-    
-    for file in filename:
-        (user_folder / file).touch()
+    try:
+        filename: list[str] = [
+            "transaction_rule.yaml"
+        ]
+        
+        for file in filename:
+            (user_folder / file).touch(exist_ok=False)
+    except Exception as e:
+        print(e)
+        raise typer.Abort()
         
 def create_folder(user_folder: Path) -> None:
-    foldername: list[str] = [
+    try:
+        foldername: list[str] = [
         "db"
     ]
     
-    for folder in foldername:
-        (user_folder / folder).mkdir()
+        for folder in foldername:
+            (user_folder / folder).mkdir(exist_ok=False)
     
+    except Exception as e:
+        print(e)
+        raise typer.Abort()
     
 def init_user_workspace(id: UUID) -> str:
     

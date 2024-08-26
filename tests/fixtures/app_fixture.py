@@ -1,8 +1,11 @@
 from pathlib import Path
 import time
+from typing import Any
 from pytest import fixture
 from tempfile import TemporaryDirectory, mkdtemp
 import shutil
+
+from fam.database.users.schemas import CreateTransactionBM
 
 
 @fixture
@@ -31,6 +34,21 @@ def prepare_app(create_temp_dir, app_dir_path):
     shutil.copytree(src, dest)
 
     return temp_path, app_path
+
+
+@fixture
+def transaction_yaml_file(
+    transaction_base_model_bmo_bank,
+) -> dict[str, list[dict[str, Any]]]:
+
+    old_trans: CreateTransactionBM = transaction_base_model_bmo_bank
+
+    old_trans.description = "IGA Epicerie"
+    old_trans.amount = 520.20
+
+    rule_data: dict[str, list[dict[str, Any]]] = {"rule": [old_trans.model_dump()]}
+
+    return rule_data
 
 
 # from pathlib import Path
