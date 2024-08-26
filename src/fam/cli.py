@@ -8,6 +8,10 @@ class AppCli:
     def app_name(self) -> str:
         return self._app_name
 
+    @app_name.setter
+    def app_name(self, value: str):
+        self._app_name = value
+
     @property
     def version(self) -> str:
         return self._version

@@ -11,7 +11,7 @@ from fam.database import services as app_services
 from fam.database.users import services as user_services
 from fam.database.db import get_db
 from fam.add_command import MAIN
-from fam.utils import fAborted, fprint
+from fam.utils import fAborted, fprint, print_dev_mode
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import utils, action
@@ -163,6 +163,10 @@ def main(
     if version:
         display_version()
         return
+
+    if action.check_env() == "dev":
+        app_cli.app_name = "Test FAM"
+        print_dev_mode()
 
     app_cli.startup()
 

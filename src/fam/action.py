@@ -1,7 +1,8 @@
-from io import StringIO
+
 from pathlib import Path
 import shutil
-from typing import Any
+import os
+from typing import Any, Literal
 from rich import print
 from sqlalchemy import  create_engine, Engine
 from alembic.config import Config
@@ -22,7 +23,17 @@ from fam.system.file import File
 from fam.utils import fprint
 from fam.cli import app_cli
 
-
+def check_env() -> Literal["dev", "prod"]:
+    
+    env = os.getenv("ENV", "")
+    
+    if env == "dev":
+        return "dev"
+    elif env == "prod":
+        return "prod"
+    else:
+        return "dev"
+    
 def init_app_dir() -> None:
     try:
         app_cli.startup()
@@ -127,8 +138,11 @@ def _apply_migrations(database_url: str) -> None:
         current_revision = latest_script
         
         # Apply Alembic migrations
-        if current_revision is not None:
-            command.upgrade(alembic_cfg, "heads")
+        if current_revision is None:
+            cmd =  command.revision(alembic_cfg, autogenerate=True, message="Init database")
+            command.upgrade(alembic_cfg, cmd.revision)
+        else:
+            command.upgrade(alembic_cfg, current_revision)
 
 def _initialize_default_data(database_url: str):
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:

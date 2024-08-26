@@ -2,7 +2,7 @@
 
 REM Stocke le chemin du répertoire contenant le script batch dans une variable
 set "SCRIPT_DIR=%~dp0"
-set ENV=prod
+set ENV=dev
 
 REM Change temporairement de répertoire vers le répertoire contenant le script
 pushd "%SCRIPT_DIR%"

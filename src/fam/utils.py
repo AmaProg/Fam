@@ -1,12 +1,10 @@
 from pathlib import Path
 from time import sleep
 from typing import Any
-
-from sqlalchemy import ScalarResult
 import typer
-import string
-import secrets
 from rich import print
+from rich.panel import Panel
+from rich.console import Console
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -46,3 +44,18 @@ def get_user_dir_from_database_url(database_url: str) -> Path:
     new_database_path = database_url.replace("sqlite:///", "")
 
     return Path(new_database_path).parent.parent
+
+
+def print_dev_mode() -> None:
+    msg: str = "You are in development mode."
+
+    panel: Panel = Panel(
+        msg,
+        title="Dev Mode",
+        border_style="yellow",
+        padding=(1, 2),
+    )
+
+    console: Console = Console()
+
+    console.print(panel, justify="left")
