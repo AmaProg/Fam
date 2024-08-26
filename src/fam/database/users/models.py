@@ -92,6 +92,7 @@ class TransactionTable(UserBase):
     amount: Mapped[float] = mapped_column(nullable=True)
     date: Mapped[int] = mapped_column(nullable=True)
     bank_name: Mapped[str] = mapped_column(nullable=False)
+    pomme: Mapped[int] = mapped_column(nullable=True)
 
     # ----- ForeignKey -----
     subcategory_id: Mapped[int] = mapped_column(

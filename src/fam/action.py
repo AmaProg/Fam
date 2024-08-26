@@ -1,3 +1,4 @@
+from io import StringIO
 from pathlib import Path
 import shutil
 from typing import Any
@@ -6,6 +7,7 @@ from sqlalchemy import  create_engine, Engine
 from alembic.config import Config
 from alembic import command
 from uuid import UUID, uuid4
+from alembic.script import ScriptDirectory
 
 import typer
 
@@ -118,10 +120,15 @@ def _apply_migrations(database_url: str) -> None:
         # Configure Alembic with the new DATABASE_URL
         alembic_cfg = Config("alembic_users.ini")
         alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+        alembic_cfg.set_main_option("script_location", "alembic/users")
         
-
+        script = ScriptDirectory.from_config(alembic_cfg)
+        latest_script = script.get_current_head()
+        current_revision = latest_script
+        
         # Apply Alembic migrations
-        command.upgrade(alembic_cfg, "head")
+        if current_revision is not None:
+            command.upgrade(alembic_cfg, "heads")
 
 def _initialize_default_data(database_url: str):
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
