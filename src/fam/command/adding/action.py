@@ -272,7 +272,9 @@ def classify_transactions(
         trans_table: TransactionTable | None = (
             user_services.get_transaction_by_date_desc_bank(
                 db=db,
-                date=transaction[bank_ins.transaction_date],
+                date=date_to_timestamp_by_bank(
+                    str(transaction[bank_ins.transaction_date]), bank
+                ),
                 desc=transaction[bank_ins.description],
                 bank=bank,
             )
