@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 from typing_extensions import Annotated
 
 import typer
@@ -152,6 +153,19 @@ def signup(
 
     except Exception as e:
         print(e)
+
+
+@app.command(help="Update the application.")
+def upgrade():
+    """
+    Upgrade the project by pulling the latest changes from the Git repository.
+    """
+    try:
+        # Exécute la commande git pull
+        subprocess.run(["git", "pull", "origin", "main"], check=True)
+        typer.echo("Project successfully upgraded.")
+    except subprocess.CalledProcessError as e:
+        typer.echo(f"Error during upgrade: {e}", err=True)
 
 
 @app.callback(invoke_without_command=True)

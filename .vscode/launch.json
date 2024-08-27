@@ -60,6 +60,14 @@
       "program": "src/fam/main.py",
       "args": ["create", "subcategory"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: upgrade",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["upgrade"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }
