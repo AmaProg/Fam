@@ -7,26 +7,29 @@ $PARENT_DIR = Join-Path -Path $SCRIPT_DIR -ChildPath ".."
 
 # Créer le répertoire .venv dans le répertoire parent
 if (Test-Path "$PARENT_DIR\.venv") {
+
     Write-Output "The virtual environment already exists in $PARENT_DIR. Activating..."
+
+    # Activer l'environnement virtuel
+    . "$PARENT_DIR\.venv\Scripts\Activate.ps1"
+
 } else {
     Write-Output "Creating the virtual environment in $PARENT_DIR.."
     python -m venv "$PARENT_DIR\.venv"
+    # Activer l'environnement virtuel
+    . "$PARENT_DIR\.venv\Scripts\Activate.ps1"
+
+
+    # Installer les dépendances depuis requirements.txt dans le répertoire parent
+    if (Test-Path "$PARENT_DIR\requirements.txt") {
+        pip install -r "$PARENT_DIR\requirements.txt"
+    } else {
+        Write-Output "requirements.txt non trouvé dans $PARENT_DIR."
+    }
+
+    python.exe -m pip install --upgrade pip
 }
 
-# Activer l'environnement virtuel
-. "$PARENT_DIR\.venv\Scripts\Activate.ps1"
-
-# Installer les dépendances depuis requirements.txt dans le répertoire parent
-if (Test-Path "$PARENT_DIR\requirements.txt") {
-    pip install -r "$PARENT_DIR\requirements.txt"
-} else {
-    Write-Output "requirements.txt non trouvé dans $PARENT_DIR."
-}
-
-python.exe -m pip install --upgrade pip
-
-# Optionnel: vérifier l'installation des packages
-pip list
 
 # # Ajouter un chemin à la variable d'environnement PATH
 # $NEW_PATH = "$PARENT_DIR\.venv\Scripts"
