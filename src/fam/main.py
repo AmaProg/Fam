@@ -15,7 +15,7 @@ from fam.add_command import MAIN
 from fam.utils import fAborted, fprint, print_dev_mode
 from fam.callback import display_version
 from fam.cli import app_cli
-from fam import utils, action
+from fam import core, filename, utils, action
 
 
 app = Typer(no_args_is_help=True)
@@ -160,10 +160,31 @@ def upgrade():
     """
     Upgrade the project by pulling the latest changes from the Git repository.
     """
+
+    update_file: Path = Path(app_cli.directory.app_dir) / filename.UPDATE
+
     try:
-        # Exécute la commande git pull
-        subprocess.run(["git", "pull", "origin", "main"], check=True)
-        typer.echo("Project successfully upgraded.")
+        # Fetch the latest changes from the remote repository
+        subprocess.run(["git", "fetch"], check=True)
+
+        result = subprocess.run(
+            ["git", "status", "-uno"], check=True, capture_output=True, text=True
+        )
+
+        if "Your branch is behind" in result.stdout:
+            subprocess.run(
+                ["git", "pull", "origin", "main"], check=True, capture_output=True
+            )
+
+            fprint("Project successfully upgraded.")
+
+            # Remove the update check file to allow future checks
+            if update_file.exists():
+                update_file.unlink()
+
+        else:
+            fprint("Your project is up-to-date.")
+
     except subprocess.CalledProcessError as e:
         typer.echo(f"Error during upgrade: {e}", err=True)
 
@@ -183,6 +204,9 @@ def main(
         print_dev_mode()
 
     app_cli.startup()
+
+    if ctx.invoked_subcommand != "init":
+        core.check_for_update()
 
 
 if __name__ == "__main__":

@@ -10,8 +10,8 @@ pushd "%SCRIPT_DIR%"
 REM Obtiens le répertoire parent
 set "PARENT_DIR=%CD%"
 
-REM Remonte d'un niveau pour obtenir le répertoire parent
-cd ..
+REM Remonte deux niveau pour obtenir le répertoire parent
+cd ..\..
 
 REM Stocke le chemin du répertoire parent dans une variable
 set "PARENT_DIR=%CD%"
