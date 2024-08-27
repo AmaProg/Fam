@@ -4,7 +4,7 @@ from unittest.mock import patch, PropertyMock
 from fam.main import app
 
 
-def test_create_new_user(prepare_app, runner: CliRunner):
+def test_create_new_user(prepare_app, runner: CliRunner, mock_init_file_exists):
 
     email: str = "Walker"
     pwd = cfm_pwd = "123456789"
@@ -24,7 +24,7 @@ def test_create_new_user(prepare_app, runner: CliRunner):
     assert "Fam: The new database was successfully created." in result.stdout
     assert "Fam: Your account has been successfully created." in result.stdout
 
-def test_signup_when_user_already_exists_in_database(prepare_app, runner: CliRunner):
+def test_signup_when_user_already_exists_in_database(prepare_app, runner: CliRunner, mock_init_file_exists):
 
     email: str = "Walker"
     pwd = cfm_pwd = "123456789"

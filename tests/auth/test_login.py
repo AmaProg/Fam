@@ -6,7 +6,9 @@ from tests.utils import input_value
 from fam.main import app
 
 
-def test_user_login(runner: CliRunner, user_login, prepare_database):
+def test_user_login(
+    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
+):
 
     email, pwd = user_login
 
@@ -25,7 +27,9 @@ def test_user_login(runner: CliRunner, user_login, prepare_database):
     assert "Fam: Connection successful." in result.stdout
 
 
-def test_user_login_with_invalid_email(runner: CliRunner, user_login, prepare_database):
+def test_user_login_with_invalid_email(
+    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
+):
 
     email, pwd = user_login
 
@@ -46,7 +50,7 @@ def test_user_login_with_invalid_email(runner: CliRunner, user_login, prepare_da
 
 
 def test_user_login_with_invalid_password(
-    runner: CliRunner, user_login, prepare_database
+    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
 ):
 
     email, pwd = user_login

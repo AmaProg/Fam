@@ -269,6 +269,7 @@ def classify_transactions(
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
 
     for idx, transaction in df.iterrows():
+
         trans_table: TransactionTable | None = (
             user_services.get_transaction_by_date_desc_bank(
                 db=db,
@@ -281,26 +282,30 @@ def classify_transactions(
         )
 
         if trans_table is not None:
-            if typer.confirm(
-                text=f"The following description {transaction[bank_ins.description]} already exists. Do you want to replace it?"
-            ):
-                existing_transaction: CreateTransactionBM = CreateTransactionBM(
-                    account_id=trans_table.account_id,
-                    amount=trans_table.amount,
-                    bank_name=trans_table.bank_name,
-                    classification_id=trans_table.classification_id,
-                    date=trans_table.date,
-                    description=trans_table.description,
-                    product=trans_table.product,
-                    subcategory_id=trans_table.subcategory_id,
-                )
+            fprint(
+                "The following description {transaction[bank_ins.description]} already exists."
+            )
+            continue
+            # if typer.confirm(
+            #     text=f"The following description {transaction[bank_ins.description]} already exists. Do you want to replace it?"
+            # ):
+            #     existing_transaction: CreateTransactionBM = CreateTransactionBM(
+            #         account_id=trans_table.account_id,
+            #         amount=trans_table.amount,
+            #         bank_name=trans_table.bank_name,
+            #         classification_id=trans_table.classification_id,
+            #         date=trans_table.date,
+            #         description=trans_table.description,
+            #         product=trans_table.product,
+            #         subcategory_id=trans_table.subcategory_id,
+            #     )
 
-                user_services.update_transaction_by_desc(
-                    db, transaction[bank_ins.description], existing_transaction
-                )
-                continue
-            else:
-                continue
+            #     user_services.update_transaction_by_desc(
+            #         db, transaction[bank_ins.description], existing_transaction
+            #     )
+            #     continue
+            # else:
+            #     continue
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
@@ -342,77 +347,6 @@ def classify_transactions(
 
         if new_transaction is None:
             continue
-
-        # # Classify all transaction
-        # transactions: list[TransactionTable] = []
-
-        # bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
-
-        # for idx, transaction in df.iterrows():
-
-        #     # show the message to select a subcategory.
-        #     show_choice(subcat_choice)
-        #     subcat_id: int = typer.prompt(
-        #         type=int,
-        #         text=f"Select a category for {transaction[bank_ins.description]}",
-        #     )
-
-        #     if subcat_id == 0:
-        #         continue
-
-        #     # show the message to select a classification.
-        #     show_choice(class_choice)
-        #     cls_id: int = typer.prompt(
-        #         type=int,
-        #         text=f"Select a class for {transaction[bank_ins.description]}",
-        #     )
-
-        #     sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
-
-        #     if sub_table is None:
-        #         raise typer.Abort
-
-        #     # Ask the user if they want to classify the transaction automatically
-        #     # for next time.
-
-        #     if typer.confirm(
-        #         "Do you want the next time you see the transaction to be filed automatically?"
-        #     ):
-        #         auto_classify_transaction(database_url, transaction[bank_ins.description])
-        #         fprint("The transaction has been successfully classified.")
-
-        #     new_transaction: CreateTransactionBM = CreateTransactionBM(
-        #         description=transaction[bank_ins.description],
-        #         product=product.value,
-        #         amount=transaction[bank_ins.transaction_amount],
-        #         date=date_to_timestamp_by_bank(
-        #             str(transaction[bank_ins.transaction_date]), bank
-        #         ),
-        #         bank_name=bank.value,
-        #         classification_id=cls_id,
-        #         subcategory_id=subcat_id,
-        #         account_id=sub_table.category.account.id,
-        #     )
-
-        #     trans_table: TransactionTable | None = (
-        #         user_services.get_transaction_by_date_desc_bank(
-        #             db=db,
-        #             date=new_transaction.date,
-        #             desc=new_transaction.description,
-        #             bank=bank,
-        #         )
-        #     )
-
-        #     if trans_table is not None:
-        #         if typer.confirm(
-        #             text=f"The following description {new_transaction.description} already exists. Do you want to replace it?"
-        #         ):
-        #             user_services.update_transaction_by_desc(
-        #                 db, new_transaction.description, new_transaction
-        #             )
-        #             continue
-        #         else:
-        #             continue
 
         transactions.append(TransactionTable(**copy(new_transaction.model_dump())))
 
