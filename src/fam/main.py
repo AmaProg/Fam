@@ -206,6 +206,17 @@ def main(
     app_cli.startup()
 
     if ctx.invoked_subcommand != "init":
+
+        init_file: Path = Path(app_cli.directory.app_dir) / filename.INIT
+
+        if not init_file.exists():
+            fprint(
+                "Please use command [green]"
+                "init"
+                "[/green] to initialize the application."
+            )
+            raise typer.Abort()
+
         core.check_for_update()
 
 
