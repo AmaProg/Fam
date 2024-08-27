@@ -269,6 +269,36 @@ def classify_transactions(
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
 
     for idx, transaction in df.iterrows():
+        trans_table: TransactionTable | None = (
+            user_services.get_transaction_by_date_desc_bank(
+                db=db,
+                date=transaction[bank_ins.transaction_date],
+                desc=transaction[bank_ins.description],
+                bank=bank,
+            )
+        )
+
+        if trans_table is not None:
+            if typer.confirm(
+                text=f"The following description {transaction[bank_ins.description]} already exists. Do you want to replace it?"
+            ):
+                existing_transaction: CreateTransactionBM = CreateTransactionBM(
+                    account_id=trans_table.account_id,
+                    amount=trans_table.amount,
+                    bank_name=trans_table.bank_name,
+                    classification_id=trans_table.classification_id,
+                    date=trans_table.date,
+                    description=trans_table.description,
+                    product=trans_table.product,
+                    subcategory_id=trans_table.subcategory_id,
+                )
+
+                user_services.update_transaction_by_desc(
+                    db, transaction[bank_ins.description], existing_transaction
+                )
+                continue
+            else:
+                continue
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
