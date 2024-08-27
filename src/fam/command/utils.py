@@ -1,25 +1,40 @@
 from datetime import datetime
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 from rich import print
 
 from fam.database.users.models import T
 from fam.enums import BankEnum
 
 
-def build_choice(items: Sequence[T]):
+def build_choice(
+    items: Sequence[T], name: Literal["classify", "categogy", "standard"] = "standard"
+):
 
     item_dict: dict[int, T] = {}
     item_choice: list[str] = []
 
     for item in items:
         item_dict[item.id] = item
-        item_choice.append(f"{item.id}: {item.name}")
+
+        if name == "categogy":
+            item_choice.append(f"{item.id}: {item.name} ({item.category.name})")
+        else:
+            item_choice.append(f"{item.id}: {item.name}")
 
     return item_dict, item_choice
 
 
-def show_choice(choice: list[str]) -> None:
-    print("\n".join(choice))
+def show_choice(choice: list[str], max_coloum: int = 10) -> None:
+
+    max_row: int = (len(choice) + max_coloum - 1) // max_coloum
+
+    columns = [choice[i * max_row : (i + 1) * max_row] for i in range(max_coloum)]
+
+    for i in range(len(columns)):
+        columns[i].extend([""] * (max_row - len(columns[i])))
+
+    for row in zip(*columns):
+        print("\t".join(f"{item:<10}" for item in row))
 
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:

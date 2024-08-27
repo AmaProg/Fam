@@ -20,3 +20,19 @@ def mock_init_file_exists():
     # Utilise un patch pour simuler que `init_file.exists()` retourne True
     with patch.object(Path, "exists", return_value=True):
         yield
+
+
+@fixture
+def mock_get_account_id_by_name():
+    with patch(
+        "fam.database.users.services.get_account_id_by_name", autospec=True
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_transaction_by_account_id():
+    with patch(
+        "fam.database.users.services.get_transaction_by_account_id", autospec=True
+    ) as mock:
+        yield mock

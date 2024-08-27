@@ -1,7 +1,8 @@
 from typing import Any, List
 
-from fam.command import expense, bank, invoice
+from fam.command import bank, invoice
 from fam.command.adding import add
+from fam.command.charge import expense
 from fam.command.creating import create
 
 

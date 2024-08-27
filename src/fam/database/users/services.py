@@ -143,7 +143,7 @@ def get_all_classification(db: Session) -> Sequence[ClassificationTable] | None:
 def get_transaction_by_account_id(
     db: Session,
     account_id: int,
-) -> Sequence[TransactionTable] | None:
+) -> Sequence[TransactionTable]:
 
     try:
 
@@ -157,6 +157,7 @@ def get_transaction_by_account_id(
 
     except:
         db.rollback()
+        return []
 
 
 def get_transaction_by_date_desc_bank(

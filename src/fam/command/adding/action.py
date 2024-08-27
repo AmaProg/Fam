@@ -70,6 +70,18 @@ def add_transaction_to_rule_file(
         print(f"An error occurred: {e}")
 
 
+def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
+
+    show_choice(choice)
+
+    prompt_int: int = typer.prompt(
+        type=int,
+        text=f"{msg} for {transac_desc}",
+    )
+
+    return prompt_int
+
+
 def classify_transaction_manually(
     transaction,
     subcat_choice: list[str],
@@ -84,20 +96,16 @@ def classify_transaction_manually(
     # Classify all transaction
 
     # show the message to select a subcategory.
-    show_choice(subcat_choice)
-    subcat_id: int = typer.prompt(
-        type=int,
-        text=f"Select a category for {transaction[bank_ins.description]}",
+    subcat_id: int = prompt_choice(
+        subcat_choice, "Select a category", transaction[bank_ins.description]
     )
 
     if subcat_id == 0:
         return None
 
     # show the message to select a classification.
-    show_choice(class_choice)
-    cls_id: int = typer.prompt(
-        type=int,
-        text=f"Select a class for {transaction[bank_ins.description]}",
+    cls_id: int = prompt_choice(
+        class_choice, "Select a category", transaction[bank_ins.description]
     )
 
     sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
@@ -283,29 +291,9 @@ def classify_transactions(
 
         if trans_table is not None:
             fprint(
-                "The following description {transaction[bank_ins.description]} already exists."
+                f"The following description {transaction[bank_ins.description]} already exists."
             )
             continue
-            # if typer.confirm(
-            #     text=f"The following description {transaction[bank_ins.description]} already exists. Do you want to replace it?"
-            # ):
-            #     existing_transaction: CreateTransactionBM = CreateTransactionBM(
-            #         account_id=trans_table.account_id,
-            #         amount=trans_table.amount,
-            #         bank_name=trans_table.bank_name,
-            #         classification_id=trans_table.classification_id,
-            #         date=trans_table.date,
-            #         description=trans_table.description,
-            #         product=trans_table.product,
-            #         subcategory_id=trans_table.subcategory_id,
-            #     )
-
-            #     user_services.update_transaction_by_desc(
-            #         db, transaction[bank_ins.description], existing_transaction
-            #     )
-            #     continue
-            # else:
-            #     continue
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
