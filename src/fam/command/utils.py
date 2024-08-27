@@ -24,7 +24,7 @@ def build_choice(
     return item_dict, item_choice
 
 
-def show_choice(choice: list[str], max_coloum: int = 10) -> None:
+def show_choice(choice: list[str], max_coloum: int = 3) -> None:
 
     max_row: int = (len(choice) + max_coloum - 1) // max_coloum
 
@@ -34,7 +34,7 @@ def show_choice(choice: list[str], max_coloum: int = 10) -> None:
         columns[i].extend([""] * (max_row - len(columns[i])))
 
     for row in zip(*columns):
-        print("\t".join(f"{item:<10}" for item in row))
+        print("\t".join(f"{item:<24}" for item in row))
 
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:

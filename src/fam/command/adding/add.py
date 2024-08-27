@@ -100,7 +100,7 @@ def statement(
                 raise typer.Abort()
 
             # By category build category and classification choice
-            subcat_dict, subcat_choice = build_choice(subcategories)
+            subcat_dict, subcat_choice = build_choice(subcategories, "categogy")
             subcat_choice.append("0: skip")
             class_dict, class_choice = build_choice(classifies)
 
