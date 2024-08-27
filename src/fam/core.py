@@ -18,7 +18,7 @@ def check_for_update() -> None:
 
     try:
         # Fetch the latest changes from the remote repository
-        subprocess.run(["git", "fetch"], check=True)
+        subprocess.run(["git", "fetch"], check=True, capture_output=True)
 
         # Check if the local branch is behind the remote branch
         result = subprocess.run(
