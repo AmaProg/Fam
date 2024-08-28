@@ -4,6 +4,7 @@ from fam.command import bank, invoice
 from fam.command.adding import add
 from fam.command.charge import expense
 from fam.command.creating import create
+from fam.command.subcategory import subcategory
 
 
 MAIN: List[dict[str, Any]] = [
@@ -12,4 +13,5 @@ MAIN: List[dict[str, Any]] = [
     bank.bank_command,
     invoice.invoice_command,
     add.add_command,
+    subcategory.subcategory_command,
 ]

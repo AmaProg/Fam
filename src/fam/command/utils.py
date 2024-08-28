@@ -56,3 +56,19 @@ def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:
     timestamp = int(date_obj.timestamp())
 
     return timestamp
+
+
+def date_to_timestamp(date_str: str) -> int:
+    """
+    Converts a date string in the YYYYMMDD format to a Unix timestamp.
+
+    :param date_str: Date string in the YYYYMMDD format
+    :return: Unix timestamp corresponding to the date, or None if the date is invalid
+    """
+    # Convert the string to a datetime object
+    date_obj = datetime.strptime(date_str, "%Y%m%d")
+
+    # Convert the datetime object to a Unix timestamp
+    timestamp = int(date_obj.timestamp())
+
+    return timestamp

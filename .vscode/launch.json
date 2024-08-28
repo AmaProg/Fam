@@ -68,6 +68,13 @@
       "program": "src/fam/main.py",
       "args": ["upgrade"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },    {
+      "name": "Python Debugger: Expense build with date",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["expense", "build", "--from", "20240701", "--to", "20240730"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

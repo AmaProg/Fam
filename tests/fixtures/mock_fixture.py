@@ -36,3 +36,17 @@ def mock_get_transaction_by_account_id():
         "fam.database.users.services.get_transaction_by_account_id", autospec=True
     ) as mock:
         yield mock
+
+
+@fixture
+def mock_get_user_session():
+    with patch("fam.auth.get_user_session", autospec=True) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_all_subcategory():
+    with patch(
+        "fam.database.users.services.get_all_subcategory", autospec=True
+    ) as mock:
+        yield mock

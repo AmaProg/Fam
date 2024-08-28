@@ -53,7 +53,7 @@ def print_dev_mode() -> None:
         msg,
         title="Dev Mode",
         border_style="yellow",
-        padding=(1, 2),
+        padding=(0, 1),
     )
 
     console: Console = Console()

@@ -10,10 +10,19 @@ from fam.utils import fprint
 
 def get_user_session() -> dict[str, Any]:
 
-    app_dir: Path = Path(app_cli.directory.app_dir)
+    try:
 
-    sess_path: Path = app_dir / "users" / "session.yaml"
+        app_dir: Path = Path(app_cli.directory.app_dir)
 
-    session_data: dict[str, Any] = File.read_file(sess_path.as_posix(), "yaml")
+        sess_path: Path = app_dir / "users" / "session.yaml"
 
-    return session_data["session"]
+        session_data: dict[str, Any] = File.read_file(sess_path.as_posix(), "yaml")
+
+        return session_data["session"]
+
+    except FileNotFoundError:
+        fprint("Please log in using the [green]'login'[/green] command.")
+        raise typer.Abort()
+
+    except Exception as e:
+        fprint(e)

@@ -79,6 +79,24 @@ def delete(
             raise typer.Abort()
 
 
+@app.command(help="User logout.")
+def logout():
+    try:
+
+        session_file: Path = Path(app_cli.directory.app_dir) / "users" / "session.yaml"
+
+        if session_file.exists():
+            session_file.unlink()
+            fprint("User logout")
+
+    except FileNotFoundError:
+        fprint("User logout")
+        raise typer.Abort()
+
+    except Exception as e:
+        fprint(e)
+
+
 @app.command(help="Authenticate a user by providing their username and password.")
 def login(
     email: Annotated[

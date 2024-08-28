@@ -69,13 +69,17 @@ def get_all_category(db: Session) -> Sequence[CategoryTable]:
     return all_cat
 
 
-def get_all_subcategory(db: Session) -> Sequence[SubCategoryTable] | None:
+def get_all_subcategory(db: Session) -> Sequence[SubCategoryTable]:
 
-    query: Select = select(SubCategoryTable)
+    try:
+        query: Select = select(SubCategoryTable)
 
-    all_subcat: Sequence[SubCategoryTable] = db.scalars(query).all()
+        all_subcat: Sequence[SubCategoryTable] = db.scalars(query).all()
 
-    return all_subcat
+        return all_subcat
+    except:
+        db.rollback()
+        return []
 
 
 def get_account_id_by_name(db: Session, account_name) -> AccountTable | None:
@@ -194,3 +198,26 @@ def create_subcategory(db: Session, sub_categories: list[SubCategoryTable]) -> N
     except SQLAlchemyError as e:
         print(e)
         db.rollback()
+
+
+def get_transaction_by_account_id_date_from_date_to(
+    db: Session,
+    account_id: int,
+    date_from: int,
+    date_to: int,
+) -> Sequence[TransactionTable]:
+
+    try:
+        query: Select = select(TransactionTable).where(
+            TransactionTable.account_id == account_id,
+            TransactionTable.date.between(date_from, date_to),
+        )
+
+        trans_table_list: Sequence[TransactionTable] = db.scalars(query).all()
+
+        return trans_table_list
+
+    except Exception as e:
+        print(e)
+        db.rollback()
+        return []
