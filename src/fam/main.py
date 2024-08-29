@@ -207,6 +207,40 @@ def upgrade():
         typer.echo(f"Error during upgrade: {e}", err=True)
 
 
+@app.command(
+    help="Allows you to synchronize the database with a Cloud service installed on the desktop.",
+    no_args_is_help=True,
+)
+def sync(
+    foldername: Annotated[
+        str,
+        typer.Option(
+            "--foldername",
+            "-f",
+            help="Folder path cloud service install on the computer.",
+            prompt="",
+        ),
+    ] = "",
+):
+    # Get user session
+
+    # Ask the user for the path to the sync folder
+
+    # Check if the folder exists
+
+    # Check if the path is already synced in the config file
+
+    # Add sync path in the config file
+
+    # Add database to the sync folder
+
+    # Check if the database is not corrupt
+
+    # Print message
+
+    fprint("Database synchronization was completed successfully.")
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,

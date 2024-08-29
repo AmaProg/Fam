@@ -26,3 +26,9 @@ def get_user_session() -> dict[str, Any]:
 
     except Exception as e:
         fprint(e)
+
+
+def get_user_database_url() -> str:
+    session = get_user_session()
+
+    return session["database_url"]

@@ -132,7 +132,7 @@ def create_new_classification(db: Session, classifies: list[CreateClassify]):
         db.rollback()
 
 
-def get_all_classification(db: Session) -> Sequence[ClassificationTable] | None:
+def get_all_classification(db: Session) -> Sequence[ClassificationTable]:
 
     try:
         query: Select = select(ClassificationTable)
@@ -142,6 +142,7 @@ def get_all_classification(db: Session) -> Sequence[ClassificationTable] | None:
         return classify
     except:
         db.rollback()
+        return []
 
 
 def get_transaction_by_account_id(

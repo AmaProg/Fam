@@ -1,5 +1,6 @@
 from pathlib import Path
 from time import sleep
+import time
 from typing import Any
 import typer
 from rich import print
@@ -59,3 +60,19 @@ def print_dev_mode() -> None:
     console: Console = Console()
 
     console.print(panel, justify="left")
+
+
+def fprint_panel(msg: str, title: str, color: str = "yellow") -> None:
+
+    panel: Panel = Panel(
+        msg,
+        title=title,
+        border_style=color,
+        padding=(0, 1),
+    )
+
+    console: Console = Console()
+
+    console.print(panel, justify="left")
+
+    time.sleep(2)

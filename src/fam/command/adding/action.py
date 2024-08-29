@@ -230,6 +230,11 @@ def is_transaction_auto_classifiable(
     bank: BankEnum,
     product: FinancialProductEnum,
 ) -> bool:
+    """The function checks if the transaction was automatically classified.
+
+    Returns:
+        bool: Returns true if the transaction is in file if false.
+    """
 
     user_dir: Path = get_user_dir_from_database_url(database_url)
 

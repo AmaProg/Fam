@@ -8,13 +8,29 @@ from rich import print
 import typer
 
 from fam import auth
+from fam.bank.constants import BANK_INST, BANK_INSTANCE_TYPE
+from fam.command.adding.action import (
+    classify_transaction_auto,
+    is_transaction_auto_classifiable,
+    prompt_choice,
+)
 from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import AccountTable, CategoryTable, SubCategoryTable
-from fam.database.users.schemas import CategoryBM, CreateSubCategory
-from fam.enums import AccountSection
-from fam.utils import fAborted, fprint
+from fam.database.users.models import (
+    AccountTable,
+    CategoryTable,
+    ClassificationTable,
+    SubCategoryTable,
+    TransactionTable,
+)
+from fam.database.users.schemas import (
+    CategoryBM,
+    CreateSubCategory,
+    CreateTransactionBM,
+)
+from fam.enums import AccountSection, BankEnum, FinancialProductEnum
+from fam.utils import fAborted, fprint, fprint_panel
 from fam.database.users import services as user_services
-from fam.command.utils import build_choice
+from fam.command.utils import build_choice, date_to_timestamp
 
 app = Typer(
     help="Creates bank accounts and expense or income categories.",
@@ -161,3 +177,193 @@ def subcategory():
 
     except Exception as e:
         fprint(e)
+
+
+@app.command(
+    help="Allows you to add new transactions manually.",
+    no_args_is_help=True,
+)
+def transaction(
+    description: Annotated[
+        str,
+        typer.Option(
+            "--description",
+            "-d",
+            help="Description of the transaction.",
+            prompt="Please enter a description.",
+        ),
+    ] = "",
+    product: Annotated[
+        FinancialProductEnum,
+        typer.Option(
+            "--product",
+            "-p",
+            help="Financial product of the transaction.",
+            prompt="Please enter a financial product.",
+            show_choices=True,
+        ),
+    ] = None,
+    amount: Annotated[
+        float,
+        typer.Option(
+            "--amount",
+            "-a",
+            help="Transaction amount.",
+            prompt="Please enter an amount.",
+        ),
+    ] = 0,
+    date: Annotated[
+        str,
+        typer.Option(
+            "--date",
+            help="Transaction date.",
+            prompt="Please enter the transaction date.",
+        ),
+    ] = "",
+    bank: Annotated[
+        BankEnum,
+        typer.Option(
+            "--bank",
+            "-b",
+            help="The name of the bank which generated the transaction.",
+            prompt="Please enter bank name",
+            show_choices=True,
+        ),
+    ] = None,
+):
+    # Get the user database url
+    database_url: str = auth.get_user_database_url()
+
+    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+        # Create a new transaction
+        new_transaction: CreateTransactionBM = CreateTransactionBM(
+            description=description,
+            product=product.value,
+            amount=amount,
+            date=date_to_timestamp(date),
+            bank_name=bank,
+            account_id=0,
+            classification_id=0,
+            subcategory_id=0,
+        )
+
+        # check if the transaction is alredy in the database
+        db_transaction: TransactionTable = (
+            user_services.get_transaction_by_date_desc_bank(
+                db=db,
+                bank=bank,
+                date=new_transaction.date,
+                desc=new_transaction.description,
+            )
+        )
+
+        if db_transaction is not None:
+            fprint("The transaction already exists in the database.")
+            return
+
+        bank_ins: BANK_INSTANCE_TYPE = BANK_INST[bank]
+
+        trans_table_list: list[TransactionTable] = []
+
+        # check if the transaction can be classify automatically
+        if is_transaction_auto_classifiable(
+            database_url=database_url,
+            product=product,
+            trans=new_transaction,
+            bank=bank,
+            bank_ins=bank_ins,
+        ):
+            if typer.confirm(
+                "This transaction can be classified automatically. Do you want to classify it?"
+            ):
+                transaction: CreateTransactionBM | None = classify_transaction_auto(
+                    transaction=new_transaction,
+                    bank=bank,
+                    bank_ins=bank_ins,
+                    database_url=database_url,
+                    product=product,
+                )
+
+                # save transaction in the database
+                if transaction is not None:
+
+                    trans_table_list.append(
+                        TransactionTable(**transaction.model_dump())
+                    )
+
+                    user_services.create_transaction(
+                        db=db,
+                        transactions=trans_table_list,
+                    )
+
+                    fprint("The transaction was added successfully.")
+                    return
+
+                else:
+                    fprint_panel(
+                        msg="An error occurred during classification. We will classify the transaction manually.",
+                        title="Auto Classification Fail",
+                    )
+
+        # Display account name
+        account: AccountSection = typer.prompt(
+            type=AccountSection,
+            text="Please select an account",
+            show_choices=True,
+        )
+
+        db_account: AccountTable = user_services.get_account_id_by_name(
+            db=db, account_name=account.value
+        )
+
+        if db_account is None:
+            fprint_panel(
+                msg="No specified account name was found in the database.",
+                title="Account name error",
+                color="red",
+            )
+            raise typer.Abort()
+
+        # Display subcategory
+        db_subcat: Sequence[SubCategoryTable] = user_services.get_all_subcategory(db)
+
+        if len(db_subcat) == 0:
+            fprint(
+                "Please create one or more subcategories before using the [green]"
+                "create transaction"
+                "[/green] command."
+            )
+            raise typer.Abort()
+
+        subcat_dict, subcat_choice = build_choice(db_subcat, "categogy")
+
+        subcat_id: int = prompt_choice(
+            subcat_choice,
+            "Select the subcategory",
+            new_transaction.description,
+        )
+
+        # Display classification
+
+        db_class: Sequence[ClassificationTable] = user_services.get_all_classification(
+            db=db,
+        )
+
+        class_dict, class_choice = build_choice(db_class)
+
+        cls_id: int = prompt_choice(
+            class_choice,
+            "Select the classification",
+            new_transaction.description,
+        )
+
+        new_transaction.account_id = db_account.id
+        new_transaction.subcategory_id = subcat_id
+        new_transaction.classification_id = cls_id
+
+        # Add transaction to the database
+        trans_table_list.append(TransactionTable(**new_transaction.model_dump()))
+        user_services.create_transaction(db=db, transactions=trans_table_list)
+
+    fprint("The transaction was added successfully.")
