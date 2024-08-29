@@ -50,3 +50,53 @@ def mock_get_all_subcategory():
         "fam.database.users.services.get_all_subcategory", autospec=True
     ) as mock:
         yield mock
+
+
+@fixture
+def mock_get_user_database_url():
+    with patch("fam.auth.get_user_database_url", autospec=True) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_transaction_by_date_desc_bank():
+    with patch(
+        "fam.database.users.services.get_transaction_by_date_desc_bank", autospec=True
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_is_transaction_classifiable():
+    with patch(
+        "fam.command.adding.action.is_transaction_auto_classificable", autospec=True
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_classify_transaction_auto():
+    with patch(
+        "fam.command.adding.action.classify_transaction_auto", autospec=True
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_create_transaction():
+    with patch("fam.database.users.services.create_transaction", autospec=True) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_all_classification():
+    with patch(
+        "fam.database.users.services.get_all_classification", autospec=True
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_check_for_update():
+    with patch("fam.core.check_for_update") as db:
+        yield db

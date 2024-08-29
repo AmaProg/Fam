@@ -18,6 +18,13 @@ from tests.fixtures.mock_fixture import (
     mock_get_transaction_by_account_id,
     mock_get_user_session,
     mock_get_all_subcategory,
+    mock_classify_transaction_auto,
+    mock_create_transaction,
+    mock_get_all_classification,
+    mock_get_transaction_by_date_desc_bank,
+    mock_get_user_database_url,
+    mock_is_transaction_classifiable,
+    mock_check_for_update,
 )
 from tests.fixtures.schemas_fixture import transaction_base_model_bmo_bank
 from tests.fixtures.data_fixture import (

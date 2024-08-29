@@ -181,7 +181,6 @@ def subcategory():
 
 @app.command(
     help="Allows you to add new transactions manually.",
-    no_args_is_help=True,
 )
 def transaction(
     description: Annotated[
@@ -201,6 +200,7 @@ def transaction(
             help="Financial product of the transaction.",
             prompt="Please enter a financial product.",
             show_choices=True,
+            case_sensitive=True,
         ),
     ] = None,
     amount: Annotated[
