@@ -67,14 +67,6 @@ def mock_get_transaction_by_date_desc_bank():
 
 
 @fixture
-def mock_is_transaction_classifiable():
-    with patch(
-        "fam.command.adding.action.is_transaction_auto_classificable", autospec=True
-    ) as mock:
-        yield mock
-
-
-@fixture
 def mock_classify_transaction_auto():
     with patch(
         "fam.command.adding.action.classify_transaction_auto", autospec=True
@@ -100,3 +92,15 @@ def mock_get_all_classification():
 def mock_check_for_update():
     with patch("fam.core.check_for_update") as db:
         yield db
+
+
+@fixture
+def mock_build_choice():
+    with patch("fam.command.utils.build_choice", autospec=True) as mock:
+        yield mock
+
+
+@fixture
+def mock_prompt_choice():
+    with patch("fam.command.utils.prompt_choice", autospec=True) as mock:
+        yield mock

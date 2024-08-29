@@ -73,8 +73,7 @@ def test_add_transaction_to_rule_file_when_file_is_not_empty(
         trans_base_model=transaction_base_model_bmo_bank,
     )
 
-    assert mock_read_yaml_file.assert_called_once
-    assert mock_save_yaml_file.called
+    mock_read_yaml_file.assert_called_once()
 
     path_arg, data_arg = mock_save_yaml_file.call_args[0]
 
@@ -101,7 +100,7 @@ def test_is_transaction_auto_classifiable_when_no_data_returns_none(
         bank=BankEnum.BMO,
         bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans=first_row,
+        trans_desc=first_row,
     )
 
     assert result == False
@@ -124,7 +123,7 @@ def test_is_transaction_auto_classifiable_when_returns_data_invalid(
         bank=BankEnum.BMO,
         bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans=first_row,
+        trans_desc=first_row,
     )
 
     assert result == False
@@ -150,7 +149,7 @@ def test_is_transaction_auto_classifiable_when_returns_data_valid(
         bank=BankEnum.BMO,
         bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans=first_row,
+        trans_desc=first_row,
     )
 
     assert result == True

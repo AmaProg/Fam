@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal, Sequence
 from rich import print
+import typer
 
 from fam.database.users.models import T
 from fam.enums import BankEnum
@@ -72,3 +73,15 @@ def date_to_timestamp(date_str: str) -> int:
     timestamp = int(date_obj.timestamp())
 
     return timestamp
+
+
+def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
+
+    show_choice(choice)
+
+    prompt_int: int = typer.prompt(
+        type=int,
+        text=f"{msg} for {transac_desc}",
+    )
+
+    return prompt_int

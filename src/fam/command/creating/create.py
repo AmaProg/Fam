@@ -12,7 +12,6 @@ from fam.bank.constants import BANK_INST, BANK_INSTANCE_TYPE
 from fam.command.adding.action import (
     classify_transaction_auto,
     is_transaction_auto_classifiable,
-    prompt_choice,
 )
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
@@ -30,7 +29,7 @@ from fam.database.users.schemas import (
 from fam.enums import AccountSection, BankEnum, FinancialProductEnum
 from fam.utils import fAborted, fprint, fprint_panel
 from fam.database.users import services as user_services
-from fam.command.utils import build_choice, date_to_timestamp
+from fam.command.utils import build_choice, date_to_timestamp, prompt_choice
 
 app = Typer(
     help="Creates bank accounts and expense or income categories.",
@@ -238,7 +237,7 @@ def transaction(
 
         # Create a new transaction
         new_transaction: CreateTransactionBM = CreateTransactionBM(
-            description=description,
+            description=description.upper(),
             product=product.value,
             amount=amount,
             date=date_to_timestamp(date),
@@ -270,9 +269,8 @@ def transaction(
         if is_transaction_auto_classifiable(
             database_url=database_url,
             product=product,
-            trans=new_transaction,
+            trans_desc=new_transaction.description,
             bank=bank,
-            bank_ins=bank_ins,
         ):
             if typer.confirm(
                 "This transaction can be classified automatically. Do you want to classify it?"
@@ -309,8 +307,7 @@ def transaction(
         # Display account name
         account: AccountSection = typer.prompt(
             type=AccountSection,
-            text="Please select an account",
-            show_choices=True,
+            text=f"Please select an account ({[section.value for section in AccountSection]})",
         )
 
         db_account: AccountTable = user_services.get_account_id_by_name(

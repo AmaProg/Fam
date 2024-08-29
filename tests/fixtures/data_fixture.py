@@ -9,11 +9,17 @@ from sqlalchemy import desc
 
 from fam.command.creating.create import subcategory
 from fam.database.users.models import (
+    AccountTable,
     CategoryTable,
+    ClassificationTable,
     SubCategoryTable,
     TransactionTable,
 )
-from fam.database.users.schemas import CreateSubCategory, CreateTransactionBM
+from fam.database.users.schemas import (
+    CreateClassify,
+    CreateSubCategory,
+    CreateTransactionBM,
+)
 from fam.enums import BankEnum, FinancialProductEnum
 
 
@@ -33,6 +39,13 @@ def sample_dataframe() -> pd.DataFrame:
     df = pd.read_csv(csv_file)
 
     return df
+
+
+@fixture
+def account_from_database() -> AccountTable:
+    account: AccountTable = AccountTable()
+
+    return account
 
 
 @fixture
@@ -106,6 +119,26 @@ def subcategory_list_from_database():
         subcat_table_list.append(subcat_table)
 
     return subcat_table_list
+
+
+@fixture
+def classification_list_from_database():
+
+    class_table: ClassificationTable
+    class_bm: CreateClassify
+    class_table_list: list[ClassificationTable] = []
+
+    name_list: list[str] = ["Personnal", "Familiy", "Couple"]
+
+    for idx, name in enumerate(name_list):
+        class_bm = CreateClassify(name=name)
+
+        class_table = ClassificationTable(**class_bm.model_dump())
+
+        class_table.id = idx + 1
+        class_table_list.append(class_table)
+
+    return class_table_list
 
 
 @fixture

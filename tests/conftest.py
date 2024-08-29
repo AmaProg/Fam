@@ -23,14 +23,17 @@ from tests.fixtures.mock_fixture import (
     mock_get_all_classification,
     mock_get_transaction_by_date_desc_bank,
     mock_get_user_database_url,
-    mock_is_transaction_classifiable,
     mock_check_for_update,
+    mock_build_choice,
+    mock_prompt_choice,
 )
 from tests.fixtures.schemas_fixture import transaction_base_model_bmo_bank
 from tests.fixtures.data_fixture import (
     sample_dataframe,
     transaction_list_form_database,
     subcategory_list_from_database,
+    classification_list_from_database,
+    account_from_database,
     database_url,
 )
 from tests.fixtures.typer import runner

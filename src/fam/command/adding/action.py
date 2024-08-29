@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import typer
 import pandas as pd
 
-from fam.command.utils import date_to_timestamp_by_bank, show_choice
+from fam.command.utils import date_to_timestamp_by_bank, prompt_choice
 from fam.database.users.models import (
     T,
     SubCategoryTable,
@@ -16,7 +16,6 @@ from fam.database.users.models import (
 )
 from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
-from fam.bank.bmo import bmo
 from fam.database.users import services as user_services
 from fam.system.file import File
 from fam.utils import fprint, get_user_dir_from_database_url
@@ -68,18 +67,6 @@ def add_transaction_to_rule_file(
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
-
-def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
-
-    show_choice(choice)
-
-    prompt_int: int = typer.prompt(
-        type=int,
-        text=f"{msg} for {transac_desc}",
-    )
-
-    return prompt_int
 
 
 def classify_transaction_manually(
@@ -225,8 +212,7 @@ def classify_transaction_auto(
 
 def is_transaction_auto_classifiable(
     database_url: str,
-    trans,
-    bank_ins: kbank.BANK_INSTANCE_TYPE,
+    trans_desc,
     bank: BankEnum,
     product: FinancialProductEnum,
 ) -> bool:
@@ -246,7 +232,6 @@ def is_transaction_auto_classifiable(
         return False
 
     # Prepare comparison values
-    trans_desc = trans[bank_ins.description]
     bank_name = bank.value
     financial_product = product.value
 
@@ -302,7 +287,7 @@ def classify_transactions(
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
-            trans=transaction,
+            trans_desc=transaction,
             product=product,
             bank=bank,
             bank_ins=bank_ins,
