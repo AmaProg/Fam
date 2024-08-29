@@ -1,6 +1,6 @@
 # 1.2.4 
 
-- Integration de la commande sync pour syncronyser la base de donnee avec un servie Cloud comme Google Drive et Drop Box installer localement.
+- Integration de la commande "create transaction" pour entre manuellement des transaction.
 - Integration de la commande Backup pour sauvegarder la base de donnee en cas de conruption.
 
 # 1.1.4

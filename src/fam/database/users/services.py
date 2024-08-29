@@ -222,3 +222,18 @@ def get_transaction_by_account_id_date_from_date_to(
         print(e)
         db.rollback()
         return []
+
+
+def get_classification_by_name(db: Session, name: str) -> ClassificationTable | None:
+
+    try:
+        query: Select = select(ClassificationTable).where(
+            ClassificationTable.name == name
+        )
+
+        result: ClassificationTable = db.scalar(query)
+
+        return result
+    except:
+        db.rollback()
+        return None

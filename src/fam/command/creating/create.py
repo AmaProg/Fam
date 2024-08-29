@@ -1,4 +1,5 @@
 from copy import copy
+from types import new_class
 from typing import Any, Sequence
 from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
@@ -23,6 +24,7 @@ from fam.database.users.models import (
 )
 from fam.database.users.schemas import (
     CategoryBM,
+    CreateClassify,
     CreateSubCategory,
     CreateTransactionBM,
 )
@@ -364,3 +366,39 @@ def transaction(
         user_services.create_transaction(db=db, transactions=trans_table_list)
 
     fprint("The transaction was added successfully.")
+
+
+@app.command(help="Allows you to add a new classification.")
+def classification(
+    name: Annotated[
+        str,
+        typer.Option(
+            "--name",
+            "-n",
+            help="Classification name",
+            prompt="Please enter the name of the classification",
+        ),
+    ],
+):
+    # Get the user database URL
+    database_url: str = auth.get_user_database_url()
+
+    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+        # Check if the new classification exists in the database
+        db_class: ClassificationTable | None = user_services.get_classification_by_name(
+            db, name
+        )
+
+        if db_class is not None:
+            fprint("This classification already exists.")
+            raise typer.Abort()
+
+        # Add the new classification to the database
+        new_class: CreateClassify = CreateClassify(
+            name=name,
+        )
+
+        user_services.create_new_classification(db, [new_class])
+
+    fprint("The classification has been added successfully.")
