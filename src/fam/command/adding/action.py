@@ -18,7 +18,7 @@ from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.database.users import services as user_services
 from fam.system.file import File
-from fam.utils import fprint, get_user_dir_from_database_url
+from fam.utils import fprint, get_user_dir_from_database_url, normalize_string
 from fam.bank import constants as kbank
 
 
@@ -162,14 +162,63 @@ def get_transaction_from_rules_file(
 
     rules: list[dict[str, Any]] = content.get("rule", [])
 
+    trans_base_model: CreateTransactionBM | None = matches_transaction_rule(
+        bank=bank.value,
+        product=product.value,
+        transaction_desc=trans_desc,
+        rules=rules,
+    )
+
+    # for rule in rules:
+
+    #     rule_desc: str = rule.get("description", "")
+    #     rule_product: str = rule.get("product", "")
+    #     rule_bank: str = rule.get("bank_name", "")
+
+    #     if all(
+    #         [
+    #             normalize_string(rule_desc) == normalize_string(trans_desc),
+    #             normalize_string(rule_product) == normalize_string(product.value),
+    #             normalize_string(rule_bank) == normalize_string(bank.value),
+    #         ]
+    #     ):
+    #         return CreateTransactionBM(**rule)
+
+    return trans_base_model
+
+
+def matches_transaction_rule(
+    transaction_desc: str,
+    product: str,
+    bank: str,
+    rules: list[dict[str, Any]],
+):
+    """
+    Checks if the details of the transaction match any of the specified rules.
+
+    Args:
+        transaction_desc (str): Description of the transaction.
+        product (Product): Product associated with the transaction.
+        bank (Bank): Bank associated with the transaction.
+        rules (list): List of rules to compare against.
+
+    Returns:
+        CreateTransactionBM: The matching rule if a match is found, otherwise None.
+    """
+    normalized_trans_desc = normalize_string(transaction_desc)
+    normalized_product = normalize_string(product)
+    normalized_bank = normalize_string(bank)
+
     for rule in rules:
 
-        if all(
-            [
-                rule.get("description", None) == trans_desc,
-                rule.get("product", None) == product.value,
-                rule.get("bank_name", None) == bank.value,
-            ]
+        rule_desc = rule.get("description", "")
+        rule_product = rule.get("product", "")
+        rule_bank = rule.get("bank_name", "")
+
+        if (
+            normalize_string(rule_desc) == normalized_trans_desc
+            and normalize_string(rule_product) == normalized_product
+            and normalize_string(rule_bank) == normalized_bank
         ):
             return CreateTransactionBM(**rule)
 
@@ -212,7 +261,7 @@ def classify_transaction_auto(
 
 def is_transaction_auto_classifiable(
     database_url: str,
-    trans_desc,
+    trans_desc: str,
     bank: BankEnum,
     product: FinancialProductEnum,
 ) -> bool:
@@ -232,23 +281,32 @@ def is_transaction_auto_classifiable(
         return False
 
     # Prepare comparison values
-    bank_name = bank.value
-    financial_product = product.value
+    # bank_name = bank.value
+    # financial_product = product.value
 
     rules_list: list[dict[str, Any]] = content.get("rule", [])
 
-    for idx, rule in enumerate(rules_list):
+    trans_base_model: CreateTransactionBM | None = matches_transaction_rule(
+        rules=rules_list,
+        bank=bank.value,
+        product=product.value,
+        transaction_desc=trans_desc,
+    )
 
-        if all(
-            [
-                trans_desc == rule.get("description", None),
-                bank_name == rule.get("bank_name", None),
-                financial_product == rule.get("product", None),
-            ]
-        ):
-            return True
+    return True if trans_base_model is not None else False
 
-    return False
+    # for idx, rule in enumerate(rules_list):
+
+    #     if all(
+    #         [
+    #             trans_desc == rule.get("description", None),
+    #             bank_name == rule.get("bank_name", None),
+    #             financial_product == rule.get("product", None),
+    #         ]
+    #     ):
+    #         return True
+
+    # return False
 
 
 def classify_transactions(

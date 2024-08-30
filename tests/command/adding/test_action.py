@@ -160,11 +160,13 @@ def test_get_transaction_from_rule_file_when_return_none(
 
     row = sample_dataframe.iloc[1]
 
+    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+
     trans_classified = get_transaction_from_rules_file(
         database_url=database_url,
         bank=BankEnum.BMO,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=row,
+        trans_desc=row[bank_ins.description],
     )
 
     assert trans_classified == None

@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from time import sleep
 import time
 from typing import Any
@@ -74,3 +75,9 @@ def fprint_panel(msg: str, title: str, color: str = "yellow") -> None:
     console.print(panel, justify="left")
 
     time.sleep(2)
+
+
+def normalize_string(s: str):
+    s = s.strip().lower()
+    s = re.sub(r"\W+", "", s)
+    return s

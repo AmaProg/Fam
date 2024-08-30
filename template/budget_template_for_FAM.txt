@@ -1,36 +1,62 @@
 --- Source de Revenue ---
-fam create category -n Placements -a income -d "Revenu de placement";
-fam create category -n Revenu -a income -d "Source de revenue"
+fam create category -n "Placements" -a income -d "Revenu généré par les investissements, y compris les intérêts, dividendes, et autres gains de placement";[x]
+fam create category -n "Revenu" -a income -d "Toutes les sources de revenu, incluant le salaire, les remboursements, et autres entrées d'argent";[x]
+
+--- SOURCE ACTIF ---
+fam create category -n "Actif a court terme" -a asset -d "Actifs qui peuvent être convertis en liquidités rapidement, généralement en moins d'un an. Cela inclut les liquidités, les comptes d'épargne, et les investissements facilement vendables.";
+fam create category -n "Actif a long terme" -a asset -d "Actifs qui ne peuvent pas être convertis en liquidités rapidement, souvent sur une période supérieure à un an. Cela inclut les immobilisations, les biens immobiliers, et les investissements à long terme.";
+
+--- SOURCE PASSIVE ----
+fam create category -n "Passif a court terme" -a passive -d "Passifs devant être réglés dans un délai court, généralement en moins d'un an, tels que les dettes à court terme et les créances fournisseurs.";
+fam create category -n "Passif a long terme" -a passive -d "Passifs qui ne sont pas exigibles immédiatement, souvent sur une période supérieure à un an, comme les emprunts à long terme et les obligations.";
+
 
 --- Depense ---
-fam create category -n "Habitation" -a expense -d "Depense lier au logement"
-fam create category -n "Assurance Personnelles" -a expense -d "Depense lier au assurance"
-fam create category -n "Transport" -a expense -d "Depense lier au transport"
-fam create category -n "Telecommunications" -a expense -d "Depense lier a la telecommunication"
-fam create category -n "Alimentation" -a expense -d "Depense lier a l'alimentation"
-fam create category -n "Sante" -a expense -d "Depense lier a la sante personnelles"
-fam create category -n "Loisirs et éducation" -a expense -d "Depense lier a l'education et au loisir"
-fam create category -n "Remboursement d’emprunts" -a expense -d "Depense lier au remboursement des dettes"
-fam create category -n "Les enfants" -a expense -d "Depense lier au enfant"
-fam create category -n "Soins Personnels" -a expense -d "Depense lier au soint personnel"
-fam create category -n "Epargne" -a expense -d "Depense lier l'epargne"
-fam create category -n "Autres" -a expense -d "Autres depense qui ne peux pas etre classer"
+fam create category -n "Habitation" -a expense -d "Depense liee au logement";
+fam create category -n "Assurance Personnelles" -a expense -d "Depense liee aux assurances";
+fam create category -n "Transport" -a expense -d "Depense liee au transport";
+fam create category -n "Telecommunications" -a expense -d "Depense liee a la telecommunication";
+fam create category -n "Alimentation" -a expense -d "Depense liee a l'alimentation";
+fam create category -n "Sante" -a expense -d "Depense liee a la sante personnelle";
+fam create category -n "Loisirs et education" -a expense -d "Depense liee a l'education et aux loisirs";
+fam create category -n "Remboursement d’emprunts" -a expense -d "Depense liee au remboursement des dettes";
+fam create category -n "Les enfants" -a expense -d "Depense liee aux enfants";
+fam create category -n "Soins Personnels" -a expense -d "Depense liee aux soins personnels";
+fam create category -n "Epargne" -a expense -d "Depense liee a l'epargne";
+fam create category -n "Autres" -a expense -d "Autres depenses qui ne peuvent pas etre classees";
+fam create category -n "Frais Financier" -a expense -d "Depense liee aux frais financiers dus aux placements";
+fam create category -n "Charges Fiscales" -a expense -d "Dépenses liées aux impôts sur les gains en capital et autres obligations fiscales.";
+fam create category -n "Services Financiers" -a expense -d "Dépenses liees aux services financiers, y compris les frais de comptable, de conseiller financier, et autres services professionnels.";
+fam create category -n "Frais Bancaires" -a expense -d "Dépenses liées aux frais bancaires, tels que les frais de tenue de compte, les frais de transaction et les frais de découvert.";
+fam create category -n "Opérations Internes" -a expense -d "Gestion des opérations internes et des transferts entre comptes";
 
+fam create subcategory
 
 --- Sous category Source de Revenue ---
-Revenus d’Interets,Dividendes
-Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret
+Revenus d’Interets,Dividendes[x]
+Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret,Remise en argent[x]
 
---- Sous category Depense ---
-Loyer,Electricite,Assurance Habitation
-Assurance vie,Assurance medicament
-Essence,Entretiens et Reparation,Abonnement Routier,Permis de conduire,Constat d'infraction
-Cellulaire,Internet
-Epicerie,Restaurant
-Medicament,Dentaire
-Abonnement,Vacances
-Carte de credit CAD,Marge de credit,Pret etudiant,Carte de credit USD,Interet,Frais Annuel
-Frais de garde,Autres depenses
-Cheveux,Vetement
-Fond d'urgence,Liberte financier
-Startup,OIQ,Comptable,Frais Bancaire
+
+--- SOURCE ACTIF SOUS-CATEGORY ---
+Tresorerie,Compte Bancaire[x]
+Immobilisation financière[x]
+
+
+--- SOURCE DEPENSE SOUS-CATEGORY ---
+Loyer,Electricite,Assurance Habitation[x]
+Assurance vie,Assurance medicament[x]
+Essence,Entretiens et Reparation,Abonnement Routier,Permis de conduire,Constat d'infraction[9]
+Cellulaire,Internet[10]
+Epicerie,Restaurant[11]
+Medicament,Dentaire[12]
+Abonnement,Vacances[13]
+Carte de credit CAD,Marge de credit,Pret etudiant,Carte de credit USD,Interet,Frais Annuel[14]
+Frais de garde,Autres depenses[15]
+Cheveux,Vetement[16]
+Fond d'urgence,Liberte financier[17]
+Startup,OIQ[18]
+Frais de placement,Frais de courtage,Pertes sur créances[19]
+Impôt sur interet[20]
+Comptabilite[21]
+Frais de Service Bancaire,Frais de Transaction,Frais de Découvert
+Transfert entre comptes internes
