@@ -1,0 +1,36 @@
+--- Source de Revenue ---
+fam create category -n Placements -a income -d "Revenu de placement";
+fam create category -n Revenu -a income -d "Source de revenue"
+
+--- Depense ---
+fam create category -n "Habitation" -a expense -d "Depense lier au logement"
+fam create category -n "Assurance Personnelles" -a expense -d "Depense lier au assurance"
+fam create category -n "Transport" -a expense -d "Depense lier au transport"
+fam create category -n "Telecommunications" -a expense -d "Depense lier a la telecommunication"
+fam create category -n "Alimentation" -a expense -d "Depense lier a l'alimentation"
+fam create category -n "Sante" -a expense -d "Depense lier a la sante personnelles"
+fam create category -n "Loisirs et éducation" -a expense -d "Depense lier a l'education et au loisir"
+fam create category -n "Remboursement d’emprunts" -a expense -d "Depense lier au remboursement des dettes"
+fam create category -n "Les enfants" -a expense -d "Depense lier au enfant"
+fam create category -n "Soins Personnels" -a expense -d "Depense lier au soint personnel"
+fam create category -n "Epargne" -a expense -d "Depense lier l'epargne"
+fam create category -n "Autres" -a expense -d "Autres depense qui ne peux pas etre classer"
+
+
+--- Sous category Source de Revenue ---
+Revenus d’Interets,Dividendes
+Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret
+
+--- Sous category Depense ---
+Loyer,Electricite,Assurance Habitation
+Assurance vie,Assurance medicament
+Essence,Entretiens et Reparation,Abonnement Routier,Permis de conduire,Constat d'infraction
+Cellulaire,Internet
+Epicerie,Restaurant
+Medicament,Dentaire
+Abonnement,Vacances
+Carte de credit CAD,Marge de credit,Pret etudiant,Carte de credit USD,Interet,Frais Annuel
+Frais de garde,Autres depenses
+Cheveux,Vetement
+Fond d'urgence,Liberte financier
+Startup,OIQ,Comptable,Frais Bancaire

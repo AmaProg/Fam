@@ -1,3 +1,8 @@
+# 1.2.5
+
+- Ajoute de la description subcategory dans la command create
+
+
 # 1.2.4
 
 - **Intégration de la commande "create transaction"** : Permet la saisie manuelle des transactions.
