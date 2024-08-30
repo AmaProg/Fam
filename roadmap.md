@@ -1,9 +1,11 @@
-# 1.2.4 
+# 1.2.4
 
-- Integration de la commande "create transaction" pour entre manuellement des transaction.
-- Integration de la commande "create classification" pour entre manuellement des classification.
-- Implementation de la mise a jour de la base de donnee de l utilisateur lors que l utilisateur utilise la commande "upgrade" pour mettre ajour l application.
-- L affichade des munu sont mantenant organiser pour une meilleure visibilite.
+- **Intégration de la commande "create transaction"** : Permet la saisie manuelle des transactions.
+- **Intégration de la commande "create classification"** : Facilite l'ajout manuel de classifications.
+- **Mise à jour automatique de la base de données** : Lors de l'exécution de la commande "upgrade", la base de données de l'utilisateur sera mise à jour automatiquement pour refléter les dernières modifications de l'application.
+- **Optimisation de l'affichage des menus** : Les menus sont maintenant mieux organisés pour une visibilité accrue.
+- **Ajout de l'option "proportion de paiement"** : Permet de définir la proportion du montant à partager lors des transactions, utile pour les dépenses en couple ou entre amis.
+
 
 # 1.1.4
 

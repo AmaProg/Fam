@@ -231,6 +231,17 @@ def transaction(
             show_choices=True,
         ),
     ] = None,
+    pay_proportion: Annotated[
+        float,
+        typer.Option(
+            "--pay-proportion",
+            help="Allows you to define the portion that you will pay on the invoice in %.",
+            prompt="How much do you pay on this bill",
+            show_choices=True,
+            max=100,
+            min=1,
+        ),
+    ] = None,
 ):
     # Get the user database url
     database_url: str = auth.get_user_database_url()
@@ -244,6 +255,7 @@ def transaction(
             amount=amount,
             date=date_to_timestamp(date),
             bank_name=bank,
+            payment_proportion=(pay_proportion / 100),
             account_id=0,
             classification_id=0,
             subcategory_id=0,

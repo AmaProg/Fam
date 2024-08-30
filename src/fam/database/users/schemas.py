@@ -18,6 +18,7 @@ class CreateTransactionBM(BaseModel):
     amount: float
     date: int
     bank_name: str
+    payment_proportion: float = 1.0
     subcategory_id: int
     classification_id: int
     account_id: int
