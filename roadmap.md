@@ -1,7 +1,9 @@
 # 1.2.4 
 
 - Integration de la commande "create transaction" pour entre manuellement des transaction.
-- Integration de la commande Backup pour sauvegarder la base de donnee en cas de conruption.
+- Integration de la commande "create classification" pour entre manuellement des classification.
+- Implementation de la mise a jour de la base de donnee de l utilisateur lors que l utilisateur utilise la commande "upgrade" pour mettre ajour l application.
+- L affichade des munu sont mantenant organiser pour une meilleure visibilite.
 
 # 1.1.4
 

@@ -287,10 +287,9 @@ def classify_transactions(
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
-            trans_desc=transaction,
+            trans_desc=transaction[bank_ins.description],
             product=product,
             bank=bank,
-            bank_ins=bank_ins,
         ):
             new_transaction: CreateTransactionBM | None = classify_transaction_auto(
                 transaction=transaction,

@@ -1,6 +1,6 @@
 from typing import Sequence
 from sqlalchemy.orm import Session
-from sqlalchemy import Select, Update, select, update
+from sqlalchemy import Select, Update, select, update, text
 from sqlalchemy.exc import SQLAlchemyError
 from fam.database.schemas import CreateUser
 from fam.database.models import UserTable
@@ -237,3 +237,10 @@ def get_classification_by_name(db: Session, name: str) -> ClassificationTable | 
     except:
         db.rollback()
         return None
+
+
+def get_current_alembic_revision(db: Session):
+    # Exécuter une requête SQL pour obtenir la version actuelle d'Alembic
+    result = db.execute(text("SELECT version_num FROM alembic_version"))
+    current_revision = result.scalar()
+    return current_revision

@@ -1,10 +1,10 @@
 from pathlib import Path
-import subprocess
 from typing_extensions import Annotated
 
 import typer
 from typer import Typer
 from rich import print
+
 
 from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
@@ -12,10 +12,11 @@ from fam.database import services as app_services
 from fam.database.users import services as user_services
 from fam.database.db import get_db
 from fam.add_command import MAIN
-from fam.utils import fAborted, fprint, print_dev_mode
+from fam.utils import fAborted, fprint, fprint_panel, print_dev_mode
 from fam.callback import display_version
 from fam.cli import app_cli
-from fam import core, filename, utils, action
+from fam import auth, filename, utils, action
+from fam.system.settings import settings
 
 
 app = Typer(no_args_is_help=True)
@@ -179,32 +180,25 @@ def upgrade():
     Upgrade the project by pulling the latest changes from the Git repository.
     """
 
-    update_file: Path = Path(app_cli.directory.app_dir) / filename.UPDATE
+    database_url: str = auth.get_user_database_url()
 
     try:
-        # Fetch the latest changes from the remote repository
-        subprocess.run(["git", "fetch"], check=True)
+        result: bool = settings.update.install_new_version()
 
-        result = subprocess.run(
-            ["git", "status", "-uno"], check=True, capture_output=True, text=True
-        )
-
-        if "Your branch is behind" in result.stdout:
-            subprocess.run(
-                ["git", "pull", "origin", "main"], check=True, capture_output=True
+        if result is True:
+            settings.update.apply_database_migrations(
+                database_url=database_url,
             )
 
-            fprint("Project successfully upgraded.")
-
-            # Remove the update check file to allow future checks
-            if update_file.exists():
-                update_file.unlink()
-
         else:
-            fprint("Your project is up-to-date.")
+            msg: str = (
+                "An error occurred while installing the application version. As a result, the database could not be updated as expected. Please re-run the command. If the issue persists, contact the developers."
+            )
+            fprint_panel(msg=msg, title="Database Migration Fail", color="red")
+            raise typer.Abort()
 
-    except subprocess.CalledProcessError as e:
-        typer.echo(f"Error during upgrade: {e}", err=True)
+    except Exception as e:
+        print(e)
 
 
 @app.command(
@@ -269,7 +263,7 @@ def main(
             )
             raise typer.Abort()
 
-        core.check_for_update()
+        settings.update.check_new_version()
 
 
 if __name__ == "__main__":

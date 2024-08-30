@@ -10,10 +10,16 @@ from fam.database.users import models as user_models
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-# config.set_main_option(
-#     "sqlalchemy.url",
-#     f"sqlite:///",
-# )
+
+config.set_main_option(
+    "sqlalchemy.url",
+    f"sqlite:///db/alembic_model.db",
+)
+
+if config.get_main_option("is_user") == "True":
+    database_url: str | None = config.get_main_option("user_database_url")
+    config.set_main_option("sqlalchemy.url", database_url)  # type: ignore
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

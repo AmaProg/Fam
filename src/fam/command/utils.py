@@ -31,11 +31,13 @@ def show_choice(choice: list[str], max_coloum: int = 3) -> None:
 
     columns = [choice[i * max_row : (i + 1) * max_row] for i in range(max_coloum)]
 
+    space: int = longest_word(choice) + 2
+
     for i in range(len(columns)):
         columns[i].extend([""] * (max_row - len(columns[i])))
 
     for row in zip(*columns):
-        print("\t".join(f"{item:<24}" for item in row))
+        print("\t".join(f"{item:<{space}}" for item in row))
 
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:
@@ -85,3 +87,11 @@ def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
     )
 
     return prompt_int
+
+
+def longest_word(words) -> int:
+    if not words:
+        return 0  # Retourne None si la liste est vide
+
+    # Utiliser max avec une fonction clé pour trouver le mot le plus long
+    return len(max(words, key=len))

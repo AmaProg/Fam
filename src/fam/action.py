@@ -20,6 +20,7 @@ from fam.database.users.models import  UserBase
 from fam.database.users.schemas import AccountBM, CreateClassify
 from fam.database.users import services as user_services
 from fam.system.file import File
+from fam.system.settings import settings
 from fam.utils import fprint
 from fam.cli import app_cli
 
@@ -125,24 +126,29 @@ def _generate_database_url(database_path: Path) -> str:
         return database_url
     
 def _create_table(eng: Engine) -> None:
-    UserBase.metadata.create_all(bind=eng)
+    #UserBase.metadata.create_all(bind=eng)
+    pass
     
 def _apply_migrations(database_url: str) -> None:
+    
+        settings.update.apply_database_migrations(database_url=database_url)
+    
         # Configure Alembic with the new DATABASE_URL
-        alembic_cfg = Config("alembic_users.ini")
-        alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-        alembic_cfg.set_main_option("script_location", "alembic/users")
+        # alembic_cfg = Config("alembic_users.ini")
+        # alembic_cfg.set_main_option("user_database_url", database_url)
+        # alembic_cfg.set_main_option("is_user", "True")
+        # alembic_cfg.set_main_option("script_location", "alembic/users")
         
-        script = ScriptDirectory.from_config(alembic_cfg)
-        latest_script = script.get_current_head()
-        current_revision = latest_script
+        # script = ScriptDirectory.from_config(alembic_cfg)
+        # latest_script = script.get_current_head()
+        # current_revision = latest_script
         
-        # Apply Alembic migrations
-        if current_revision is None:
-            cmd =  command.revision(alembic_cfg, autogenerate=True, message="Init database")
-            command.upgrade(alembic_cfg, cmd.revision)
-        else:
-            command.upgrade(alembic_cfg, current_revision)
+        # # Apply Alembic migrations
+        # if current_revision is None:
+        #     cmd =  command.revision(alembic_cfg, autogenerate=True, message="Init database")
+        #     command.upgrade(alembic_cfg, cmd.revision)
+        # else:
+        #     command.upgrade(alembic_cfg, "heads")
 
 def _initialize_default_data(database_url: str):
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:

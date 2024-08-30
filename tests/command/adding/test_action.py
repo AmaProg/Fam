@@ -98,9 +98,8 @@ def test_is_transaction_auto_classifiable_when_no_data_returns_none(
     result: bool = is_transaction_auto_classifiable(
         database_url=database_url,
         bank=BankEnum.BMO,
-        bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row,
+        trans_desc=first_row[bank_ins.description],
     )
 
     assert result == False
@@ -121,9 +120,8 @@ def test_is_transaction_auto_classifiable_when_returns_data_invalid(
     result: bool = is_transaction_auto_classifiable(
         database_url=database_url,
         bank=BankEnum.BMO,
-        bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row,
+        trans_desc=first_row[bank_ins.description],
     )
 
     assert result == False
@@ -147,9 +145,8 @@ def test_is_transaction_auto_classifiable_when_returns_data_valid(
     result: bool = is_transaction_auto_classifiable(
         database_url=database_url,
         bank=BankEnum.BMO,
-        bank_ins=bank_ins,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row,
+        trans_desc=first_row[bank_ins.description],
     )
 
     assert result == True

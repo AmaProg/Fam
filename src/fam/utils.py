@@ -10,6 +10,8 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+console: Console = Console()
+
 
 def add_command(app: typer.Typer, commands: list[dict[str, Any]]):
 
@@ -57,8 +59,6 @@ def print_dev_mode() -> None:
         padding=(0, 1),
     )
 
-    console: Console = Console()
-
     console.print(panel, justify="left")
 
 
@@ -70,8 +70,6 @@ def fprint_panel(msg: str, title: str, color: str = "yellow") -> None:
         border_style=color,
         padding=(0, 1),
     )
-
-    console: Console = Console()
 
     console.print(panel, justify="left")
 

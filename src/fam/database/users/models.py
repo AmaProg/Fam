@@ -1,7 +1,7 @@
 from itertools import product
 from typing import TypeVar
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-from sqlalchemy import ForeignKey
+from sqlalchemy import CheckConstraint, ForeignKey, CheckConstraint
 
 
 UserBase = declarative_base()
@@ -93,7 +93,7 @@ class TransactionTable(UserBase):
     amount: Mapped[float] = mapped_column(nullable=True)
     date: Mapped[int] = mapped_column(nullable=True)
     bank_name: Mapped[str] = mapped_column(nullable=False)
-
+    payment_proportion: Mapped[float] = mapped_column(nullable=False, default=1.0)
     # ----- ForeignKey -----
     subcategory_id: Mapped[int] = mapped_column(
         ForeignKey("subcategory.id", ondelete="CASCADE"),
