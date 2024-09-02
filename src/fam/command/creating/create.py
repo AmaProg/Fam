@@ -12,6 +12,7 @@ from fam import auth
 from fam.bank.constants import BANK_INST, BANK_INSTANCE_TYPE
 from fam.command.adding.action import (
     classify_transaction_auto,
+    define_transaction_type,
     is_transaction_auto_classifiable,
 )
 from fam.database.db import DatabaseType, get_db
@@ -28,7 +29,7 @@ from fam.database.users.schemas import (
     CreateSubCategory,
     CreateTransactionBM,
 )
-from fam.enums import AccountSection, BankEnum, FinancialProductEnum
+from fam.enums import AccountSection, BankEnum, FinancialProductEnum, TransactionType
 from fam.utils import fAborted, fprint, fprint_panel
 from fam.database.users import services as user_services
 from fam.command.utils import build_choice, date_to_timestamp, prompt_choice
@@ -242,6 +243,16 @@ def transaction(
             min=1,
         ),
     ] = None,
+    transaction_type: Annotated[
+        TransactionType,
+        typer.Option(
+            "--transaction_type",
+            "-t",
+            help="",
+            prompt="Please indicate the transaction type: Withdrawal (debit) Deposit (credit)",
+            show_choices=True,
+        ),
+    ] = None,
 ):
     # Get the user database url
     database_url: str = auth.get_user_database_url()
@@ -252,13 +263,14 @@ def transaction(
         new_transaction: CreateTransactionBM = CreateTransactionBM(
             description=description.upper(),
             product=product.value,
-            amount=amount,
+            amount=abs(amount),
             date=date_to_timestamp(date),
             bank_name=bank,
             payment_proportion=(pay_proportion / 100),
             account_id=0,
             classification_id=0,
             subcategory_id=0,
+            transaction_type=transaction_type.value,
         )
 
         # check if the transaction is alredy in the database

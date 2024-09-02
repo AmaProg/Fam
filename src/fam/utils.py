@@ -25,8 +25,7 @@ def add_command(app: typer.Typer, commands: list[dict[str, Any]]):
     return app
 
 
-def fprint(message):
-    color: str = "cyan"
+def fprint(message, color: str = "cyan"):
     print(f"[{color}]Fam[/{color}]: {message}")
     sleep(0.2)
 
@@ -81,6 +80,10 @@ def normalize_string(s: str):
     s = s.strip().lower()
     s = re.sub(r"\W+", "", s)
     return s
+
+
+def normalize_list(s: str) -> list[str]:
+    return s.strip().split(",")
 
 
 def message_coming_soon() -> None:

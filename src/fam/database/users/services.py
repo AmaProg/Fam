@@ -17,7 +17,7 @@ from fam.database.users.schemas import (
     CreateClassify,
     CreateTransactionBM,
 )
-from fam.enums import BankEnum
+from fam.enums import BankEnum, TransactionType
 
 
 def create_user(db: Session, user: CreateUser):
@@ -260,6 +260,7 @@ def get_transaction_by_date_classification(
             .where(
                 ClassificationTable.name == classsification_name,
                 TransactionTable.date.between(date_from, date_to),
+                TransactionTable.transaction_type == TransactionType.DEBIT.value,
             )
         )
 

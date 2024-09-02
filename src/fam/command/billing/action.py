@@ -14,7 +14,7 @@ def generate_invoice_table(
     invoice_title: str,
 ) -> None:
     # Initialisation du tableau Rich avec un titre
-    table: Table = Table(title=invoice_title)
+    table: Table = Table(title=invoice_title, style="bold cyan")
     headers: list[str] = []
 
     # Conversion des transactions en une liste de dictionnaires
@@ -123,9 +123,11 @@ def generate_invoice_table(
             )
 
     # Ligne de total global
+    table.add_row(*[""] * 6)
     table.add_row("", "", "Total Global", "", "", f"{total_adjusted_amount:.2f}")
 
     # Affichage du tableau dans la console
     console: Console = Console()
+    console.print("\n")
     console.print(table)
-    print("")
+    console.print("\n")

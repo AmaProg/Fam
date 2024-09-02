@@ -56,9 +56,7 @@ def statement(
 ):
     try:
         # Get user session.
-        session = auth.get_user_session()
-
-        database_url: str = session["database_url"]
+        database_url: str = auth.get_user_database_url()
 
         # Get csv file and convert to dataframe
         csv_filename: str = (

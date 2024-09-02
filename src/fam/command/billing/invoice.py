@@ -4,10 +4,15 @@ from typing_extensions import Annotated
 from typer import Typer
 
 from fam import auth
-from fam.command.utils import date_to_timestamp
+from fam.command.utils import (
+    build_choice,
+    date_to_timestamp,
+    is_valid_date,
+    show_choice,
+)
 from fam.database.db import DatabaseType, get_db
-from fam.database.users.models import TransactionTable
-from fam.utils import fprint, message_coming_soon
+from fam.database.users.models import ClassificationTable, TransactionTable
+from fam.utils import fAborted, fprint, message_coming_soon, normalize_list
 from fam.command.billing import action
 from fam.database.users import services as user_services
 
@@ -23,11 +28,12 @@ def payment():
 
 @app.command()
 def build(
-    from_: Annotated[str, typer.Option("--from", "-f", help="", prompt="")] = "",
-    to_: Annotated[str, typer.Option("--to", "-t", help="", prompt="")] = "",
-    classification: Annotated[
-        str, typer.Option("--classification", "-c", help="", prompt="")
-    ] = "",
+    from_: Annotated[
+        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+    ] = None,
+    to_: Annotated[
+        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+    ] = None,
 ):
 
     try:
@@ -35,14 +41,49 @@ def build(
         database_url: str = auth.get_user_database_url()
 
         # verify if the date is valide
+        date_list: list[str] = [from_, to_]
 
-        # verify if the classification is present in the database
+        for date in date_list:
 
-        classification_list: list[str] = classification.split(",")
+            if is_valid_date(date) == False:
+                fprint("One of the dates does not have the correct format.")
+                raise typer.Abort()
 
         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-            for classification_name in classification_list:
+            db_classification: Sequence[ClassificationTable] = (
+                user_services.get_all_classification(db)
+            )
+
+            class_dict, class_choice = build_choice(db_classification)
+
+            show_choice(class_choice)
+
+            id_str: str = typer.prompt(
+                type=str, text="Please choose classifications separated by commas (,)"
+            )
+
+            id_list: list[str] = normalize_list(id_str)
+
+            classification_list: list[str] = []
+
+            for id in id_list:
+
+                key_id: int = int(id)
+
+                classification_table: ClassificationTable | None = class_dict.get(
+                    key_id, None
+                )
+
+                if classification_table is None:
+                    fprint(
+                        f"The id '{key_id}' is not valid. The class will be ignored."
+                    )
+                    continue
+
+                classification_list.append(classification_table.name)
+
+            for name in classification_list:
 
                 # get transaction from date and classification
                 db_transaction: Sequence[TransactionTable] = (
@@ -50,17 +91,27 @@ def build(
                         db=db,
                         date_from=date_to_timestamp(from_),
                         date_to=date_to_timestamp(to_),
-                        classsification_name=classification_name,
+                        classsification_name=name,
                     )
                 )
 
+                if len(db_transaction) == 0:
+                    fprint(
+                        f"No transaction for classification with identifier {name}.",
+                        color="yellow",
+                    )
+
+                    continue
+
                 # Build each classification with colonne Subcategory | Amount Subcategory | Paiement Porportion | Amount with Proportion
                 action.generate_invoice_table(
-                    classification_name=classification_name,
-                    invoice_title="Invoce",
+                    classification_name=name,
+                    invoice_title=f"Invoice for {name}",
                     transaction_list=db_transaction,
                 )
 
-        fprint("")
+    except typer.Abort:
+        fAborted()
+
     except Exception as e:
         print(e)

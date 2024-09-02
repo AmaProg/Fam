@@ -19,6 +19,7 @@ class CreateTransactionBM(BaseModel):
     date: int
     bank_name: str
     payment_proportion: float = 1.0
+    transaction_type: str = "debit"
     subcategory_id: int
     classification_id: int
     account_id: int

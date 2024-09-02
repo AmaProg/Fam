@@ -16,3 +16,8 @@ class AccountSection(Enum):
     EXPENSE = "expense"
     ASSET = "asset"
     PASSIVE = "passive"
+
+
+class TransactionType(Enum):
+    CREDIT = "credit"
+    DEBIT = "debit"

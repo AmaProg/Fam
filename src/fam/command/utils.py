@@ -29,7 +29,9 @@ def show_choice(choice: list[str], max_coloum: int = 3) -> None:
 
     max_row: int = (len(choice) + max_coloum - 1) // max_coloum
 
-    columns = [choice[i * max_row : (i + 1) * max_row] for i in range(max_coloum)]
+    columns: list[list[str]] = [
+        choice[i * max_row : (i + 1) * max_row] for i in range(max_coloum)
+    ]
 
     space: int = longest_word(choice) + 2
 
@@ -37,7 +39,7 @@ def show_choice(choice: list[str], max_coloum: int = 3) -> None:
         columns[i].extend([""] * (max_row - len(columns[i])))
 
     for row in zip(*columns):
-        print("\t".join(f"{item:<{space}}" for item in row))
+        print("\t".capitalize().join(f"{item:<{space}}".capitalize() for item in row))
 
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:
@@ -95,3 +97,14 @@ def longest_word(words) -> int:
 
     # Utiliser max avec une fonction clé pour trouver le mot le plus long
     return len(max(words, key=len))
+
+
+def is_valid_date(date_str: str) -> bool:
+    try:
+
+        datetime.strptime(date_str, "%Y%m%d")
+
+        return True
+
+    except ValueError:
+        return False

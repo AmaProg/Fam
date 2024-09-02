@@ -94,6 +94,8 @@ class TransactionTable(UserBase):
     date: Mapped[int] = mapped_column(nullable=True)
     bank_name: Mapped[str] = mapped_column(nullable=False)
     payment_proportion: Mapped[float] = mapped_column(nullable=False)
+    transaction_type: Mapped[str] = mapped_column(nullable=True, default="debit")
+
     # ----- ForeignKey -----
     subcategory_id: Mapped[int] = mapped_column(
         ForeignKey("subcategory.id", ondelete="CASCADE"),

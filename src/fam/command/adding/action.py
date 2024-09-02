@@ -243,10 +243,12 @@ def classify_transaction_auto(
     if old_transaction is None:
         return None
 
+    amount_value: float = transaction[bank_ins.transaction_amount]
+
     transaction_classified = CreateTransactionBM(
         description=old_transaction.description,
         product=old_transaction.product,
-        amount=transaction[bank_ins.transaction_amount],
+        amount=abs(amount_value),
         date=date_to_timestamp_by_bank(
             str(transaction[bank_ins.transaction_date]), bank
         ),
@@ -254,9 +256,30 @@ def classify_transaction_auto(
         classification_id=old_transaction.classification_id,
         subcategory_id=old_transaction.subcategory_id,
         account_id=old_transaction.account_id,
+        transaction_type=define_transaction_type(amount_value, product),
     )
 
     return transaction_classified
+
+
+def define_transaction_type(amount: float, product: FinancialProductEnum) -> str:
+
+    negatif_amount: dict[FinancialProductEnum, str] = {
+        FinancialProductEnum.CREDIT_CARD: "credit",
+        FinancialProductEnum.CHECKING_ACCOUNT: "debit",
+    }
+
+    positif_amount: dict[FinancialProductEnum, str] = {
+        FinancialProductEnum.CREDIT_CARD: "debit",
+        FinancialProductEnum.CHECKING_ACCOUNT: "credit",
+    }
+
+    if amount > 0:
+        transaction_type: str = positif_amount.get(product, "")
+    else:
+        transaction_type: str = negatif_amount.get(product, "")
+
+    return transaction_type
 
 
 def is_transaction_auto_classifiable(
@@ -280,10 +303,6 @@ def is_transaction_auto_classifiable(
     if content is None:
         return False
 
-    # Prepare comparison values
-    # bank_name = bank.value
-    # financial_product = product.value
-
     rules_list: list[dict[str, Any]] = content.get("rule", [])
 
     trans_base_model: CreateTransactionBM | None = matches_transaction_rule(
@@ -294,19 +313,6 @@ def is_transaction_auto_classifiable(
     )
 
     return True if trans_base_model is not None else False
-
-    # for idx, rule in enumerate(rules_list):
-
-    #     if all(
-    #         [
-    #             trans_desc == rule.get("description", None),
-    #             bank_name == rule.get("bank_name", None),
-    #             financial_product == rule.get("product", None),
-    #         ]
-    #     ):
-    #         return True
-
-    # return False
 
 
 def classify_transactions(
