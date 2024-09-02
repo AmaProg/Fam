@@ -31,16 +31,25 @@ def open_dialog_file(bank: str) -> str:
     return csv_filename
 
 
-def read_csv_by_bank(filename: str, bank: BankEnum) -> DataFrame | None:
-
-    func: dict[BankEnum, Any] = {
-        BankEnum.BMO: pd.read_csv(filename, skiprows=1),
-        BankEnum.TANGERINE: pd.read_csv(filename),
+def read_csv_by_bank(filename: str, bank: BankEnum) -> pd.DataFrame | None:
+    # Dictionnaire de configurations spécifiques pour chaque banque
+    bank_configurations = {
+        BankEnum.BMO: {"skiprows": 1},
+        BankEnum.TANGERINE: {"encoding": "ISO-8859-1"},
+        # Ajoutez d'autres banques et configurations ici si nécessaire
     }
 
-    df = func.get(bank, None)
+    # Récupérer la configuration pour la banque spécifiée
+    config = bank_configurations.get(
+        bank, {"skiprows": 1}
+    )  # Valeur par défaut si la banque n'est pas trouvée
 
-    return df
+    try:
+        # Lire le fichier CSV avec la configuration spécifique
+        return pd.read_csv(filename, **config)
+    except Exception as e:
+        print(f"Error reading CSV file: {e}")
+        return None
 
 
 def get_transaction_rule_file(database_url: str) -> Path:
@@ -84,7 +93,9 @@ def classify_transaction_manually(
 
     # show the message to select a subcategory.
     subcat_id: int = prompt_choice(
-        subcat_choice, "Select a category", transaction[bank_ins.description]
+        subcat_choice,
+        "Select a category",
+        transaction[bank_ins.get_description(product)],
     )
 
     if subcat_id == 0:
@@ -92,7 +103,9 @@ def classify_transaction_manually(
 
     # show the message to select a classification.
     cls_id: int = prompt_choice(
-        class_choice, "Select a category", transaction[bank_ins.description]
+        class_choice,
+        "Select a category",
+        transaction[bank_ins.get_description(product)],
     )
 
     sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
@@ -101,11 +114,11 @@ def classify_transaction_manually(
         raise typer.Abort()
 
     new_transaction: CreateTransactionBM = CreateTransactionBM(
-        description=transaction[bank_ins.description],
+        description=transaction[bank_ins.get_description(product)],
         product=product.value,
-        amount=transaction[bank_ins.transaction_amount],
+        amount=transaction[bank_ins.get_transaction_amount(product)],
         date=date_to_timestamp_by_bank(
-            str(transaction[bank_ins.transaction_date]), bank
+            str(transaction[bank_ins.get_transaction_date(product)]), bank
         ),
         bank_name=bank.value,
         classification_id=cls_id,
@@ -237,20 +250,20 @@ def classify_transaction_auto(
         product=product,
         bank=bank,
         database_url=database_url,
-        trans_desc=transaction[bank_ins.description],
+        trans_desc=transaction[bank_ins.get_description(product)],
     )
 
     if old_transaction is None:
         return None
 
-    amount_value: float = transaction[bank_ins.transaction_amount]
+    amount_value: float = transaction[bank_ins.get_transaction_amount(product)]
 
     transaction_classified = CreateTransactionBM(
         description=old_transaction.description,
         product=old_transaction.product,
         amount=abs(amount_value),
         date=date_to_timestamp_by_bank(
-            str(transaction[bank_ins.transaction_date]), bank
+            str(transaction[bank_ins.get_transaction_date(product)]), bank
         ),
         bank_name=old_transaction.bank_name,
         classification_id=old_transaction.classification_id,
@@ -336,22 +349,22 @@ def classify_transactions(
             user_services.get_transaction_by_date_desc_bank(
                 db=db,
                 date=date_to_timestamp_by_bank(
-                    str(transaction[bank_ins.transaction_date]), bank
+                    str(transaction[bank_ins.get_transaction_date(product)]), bank
                 ),
-                desc=transaction[bank_ins.description],
+                desc=transaction[bank_ins.get_description(product)],
                 bank=bank,
             )
         )
 
         if trans_table is not None:
             fprint(
-                f"The following description {transaction[bank_ins.description]} already exists."
+                f"The following description {transaction[bank_ins.get_description(product)]} already exists."
             )
             continue
 
         if is_transaction_auto_classifiable(
             database_url=database_url,
-            trans_desc=transaction[bank_ins.description],
+            trans_desc=transaction[bank_ins.get_description(product)],
             product=product,
             bank=bank,
         ):
@@ -368,7 +381,7 @@ def classify_transactions(
                     TransactionTable(**copy(new_transaction.model_dump()))
                 )
                 fprint(
-                    f"Transaction {transaction[bank_ins.description]} has been automatically classified."
+                    f"Transaction {transaction[bank_ins.get_description(product)]} has been automatically classified."
                 )
                 continue
             else:

@@ -29,6 +29,7 @@ def user_input(transaction_list_form_database) -> list[str]:
         "20240525",
         db_transaction.bank_name,
         "50",
+        "debit",
     ]
 
 
