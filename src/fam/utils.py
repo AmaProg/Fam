@@ -81,3 +81,7 @@ def normalize_string(s: str):
     s = s.strip().lower()
     s = re.sub(r"\W+", "", s)
     return s
+
+
+def message_coming_soon() -> None:
+    fprint("This command is coming soon")

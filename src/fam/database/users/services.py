@@ -244,3 +244,29 @@ def get_current_alembic_revision(db: Session):
     result = db.execute(text("SELECT version_num FROM alembic_version"))
     current_revision = result.scalar()
     return current_revision
+
+
+def get_transaction_by_date_classification(
+    db: Session,
+    date_from: int,
+    date_to: int,
+    classsification_name: str,
+) -> Sequence[TransactionTable]:
+
+    try:
+        query: Select = (
+            select(TransactionTable)
+            .join(ClassificationTable)
+            .where(
+                ClassificationTable.name == classsification_name,
+                TransactionTable.date.between(date_from, date_to),
+            )
+        )
+
+        result: Sequence[TransactionTable] = db.scalars(query).all()
+
+        return result
+    except SQLAlchemyError as e:
+        db.rollback()
+        print(e)
+        return []

@@ -1,6 +1,15 @@
-# 1.2.5
+# 1.X.X
 
-- Ajoute de la description subcategory dans la command create
+- Ajoute de la description subcategory dans la command create lors qu'on tappe --help
+- Correction du probleme de comparaison des description qui ont des caractere speciaux
+- Ajoute de la banque Tangerine pour afin traiter les donnee de cette banque.
+- Ajoute de la du paramettre classification poue filter par class
+- Integration d une command qui permet de supprimer les doublons dans la base de donnee
+- Demande de validation avant de traiter uen transaction lorsque nous creons une transaction.
+- Meilleure affichage lorsque nous pour les categorys.
+- Ajout de la commande update
+
+# 1.3.4
 
 
 # 1.2.4

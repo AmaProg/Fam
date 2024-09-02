@@ -97,6 +97,14 @@
         "bmo"
       ],
       "envFile": "${workspaceFolder}/.env-pythonpath"
-    }
+    },
+    {
+      "name": "Python Debugger: Invoice build",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["invoice", "build", "--from", "20240101", "--to", "20240730", "-c", "personel,Couple"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
   ]
 }

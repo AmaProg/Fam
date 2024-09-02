@@ -31,3 +31,11 @@ class CreateClassify(BaseModel):
 class CreateSubCategory(BaseModel):
     name: str
     category_id: int
+
+
+class TransactionBaseModel(BaseModel):
+    class_name: str
+    category_name: str
+    subcategory_name: str
+    amount: float
+    pay_ratio: int
