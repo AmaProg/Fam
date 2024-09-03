@@ -16,7 +16,5 @@ class BMO(FinancialInstitution):
         self._credit_card = credit_card
 
 
-bmo: BMO = BMO()
-
 if __name__ == "__main__":
     bmo: BMO = BMO()

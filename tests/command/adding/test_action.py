@@ -1,8 +1,6 @@
+import pytest
 from pathlib import Path
-from typing import assert_type
-from unittest.mock import patch
 
-from pytest import fixture
 from fam import filename
 from fam.command.adding.action import (
     add_transaction_to_rule_file,
@@ -14,11 +12,7 @@ from fam.command.adding.action import (
 from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.bank import constants as kbank
-
-
-@fixture
-def database_url() -> str:
-    return "sqlite:///C:/Users/user_name/AppData/Local/Financial_Advisor_for_Me/users/b5d49fb06b704b55bc4a9188b972ed78/db/user_database.db"
+from pytest_lazyfixture import lazy_fixture
 
 
 def test_get_transaction_rule_path(database_url):
@@ -48,8 +42,8 @@ def test_add_transaction_to_rule_file_when_file_is_empty(
         trans_base_model=transaction_base_model_bmo_bank,
     )
 
-    assert mock_read_yaml_file.assert_called_once
-    assert mock_save_yaml_file.called
+    mock_read_yaml_file.assert_called_once()
+    mock_save_yaml_file.assert_called_once()
 
     path_arg, data_arg = mock_save_yaml_file.call_args[0]
 
@@ -82,55 +76,36 @@ def test_add_transaction_to_rule_file_when_file_is_not_empty(
     )
 
 
-def test_is_transaction_auto_classifiable_when_no_data_returns_none(
+def test_auto_classifiable_with_bank_credit_card_when_no_data_returns_none(
     mock_read_yaml_file,
     database_url,
-    sample_dataframe,
+    BMO_CSV_dataframe,
 ):
 
     mock_read_yaml_file.return_value = None
 
-    assert mock_read_yaml_file.assert_called_once
-
-    first_row = sample_dataframe.iloc[0]
-    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+    first_row = BMO_CSV_dataframe.iloc[0]
+    institution: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+    description_header: str = institution.get_description(
+        FinancialProductEnum.CREDIT_CARD
+    )
 
     result: bool = is_transaction_auto_classifiable(
         database_url=database_url,
         bank=BankEnum.BMO,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row[bank_ins.description],
+        trans_desc=first_row[description_header],
     )
+
+    mock_read_yaml_file.assert_called_once()
 
     assert result == False
 
 
-def test_is_transaction_auto_classifiable_when_returns_data_invalid(
-    mock_read_yaml_file, transaction_yaml_file, sample_dataframe, database_url
-):
-
-    mock_read_yaml_file.return_value = transaction_yaml_file
-
-    assert mock_read_yaml_file.assert_called_once
-
-    first_row = sample_dataframe.iloc[0]
-
-    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
-
-    result: bool = is_transaction_auto_classifiable(
-        database_url=database_url,
-        bank=BankEnum.BMO,
-        product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row[bank_ins.description],
-    )
-
-    assert result == False
-
-
-def test_is_transaction_auto_classifiable_when_returns_data_valid(
+def test_auto_classifiable_BMO_credit_card_when_returns_data_invalid(
     mock_read_yaml_file,
     transaction_yaml_file,
-    sample_dataframe,
+    BMO_CSV_dataframe,
     database_url,
 ):
 
@@ -138,35 +113,66 @@ def test_is_transaction_auto_classifiable_when_returns_data_valid(
 
     assert mock_read_yaml_file.assert_called_once
 
-    first_row = sample_dataframe.iloc[1]
+    first_row = BMO_CSV_dataframe.iloc[0]
 
-    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+    institution: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
 
     result: bool = is_transaction_auto_classifiable(
         database_url=database_url,
         bank=BankEnum.BMO,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=first_row[bank_ins.description],
+        trans_desc=first_row[
+            institution.get_description(FinancialProductEnum.CREDIT_CARD)
+        ],
+    )
+
+    assert result == False
+
+
+def test_auto_classifiable_BMO_credit_card_when_returns_data_valid(
+    mock_read_yaml_file,
+    transaction_yaml_file,
+    BMO_CSV_dataframe,
+    database_url,
+):
+
+    mock_read_yaml_file.return_value = transaction_yaml_file
+
+    assert mock_read_yaml_file.assert_called_once
+
+    first_row = BMO_CSV_dataframe.iloc[1]
+
+    institution: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+
+    result: bool = is_transaction_auto_classifiable(
+        database_url=database_url,
+        bank=BankEnum.BMO,
+        product=FinancialProductEnum.CREDIT_CARD,
+        trans_desc=first_row[
+            institution.get_description(FinancialProductEnum.CREDIT_CARD)
+        ],
     )
 
     assert result == True
 
 
 def test_get_transaction_from_rule_file_when_return_none(
-    mock_read_yaml_file, database_url, sample_dataframe
+    mock_read_yaml_file,
+    database_url,
+    BMO_CSV_dataframe,
 ):
 
     mock_read_yaml_file.return_value = None
 
-    row = sample_dataframe.iloc[1]
+    row = BMO_CSV_dataframe.iloc[1]
 
-    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+    institution: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
 
     trans_classified = get_transaction_from_rules_file(
         database_url=database_url,
         bank=BankEnum.BMO,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=row[bank_ins.description],
+        trans_desc=row[institution.get_description(FinancialProductEnum.CREDIT_CARD)],
     )
 
     assert trans_classified == None
@@ -175,38 +181,39 @@ def test_get_transaction_from_rule_file_when_return_none(
 def test_get_transaction_from_rule_file_when_return_data(
     mock_read_yaml_file,
     database_url,
-    sample_dataframe,
+    BMO_CSV_dataframe,
     transaction_yaml_file,
 ):
 
     mock_read_yaml_file.return_value = transaction_yaml_file
 
-    row = sample_dataframe.iloc[1]
+    row = BMO_CSV_dataframe.iloc[1]
 
-    bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
+    institution: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
 
     trans_classified = get_transaction_from_rules_file(
         database_url=database_url,
         bank=BankEnum.BMO,
         product=FinancialProductEnum.CREDIT_CARD,
-        trans_desc=row[bank_ins.description],
+        trans_desc=row[institution.get_description(FinancialProductEnum.CREDIT_CARD)],
     )
 
-    assert trans_classified.description == row[bank_ins.description]
+    assert (
+        trans_classified.description
+        == row[institution.get_description(FinancialProductEnum.CREDIT_CARD)]
+    )
 
 
 def test_classify_transaction_auto_when_transaction_is_already_in_transaction_rule_file(
     database_url,
-    sample_dataframe,
+    BMO_CSV_dataframe,
     mock_read_yaml_file,
     transaction_yaml_file,
 ):
 
     mock_read_yaml_file.return_value = transaction_yaml_file
 
-    assert mock_read_yaml_file.assert_called_once
-
-    row = sample_dataframe.iloc[1]
+    row = BMO_CSV_dataframe.iloc[1]
 
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
 
@@ -219,6 +226,8 @@ def test_classify_transaction_auto_when_transaction_is_already_in_transaction_ru
     )
 
     row_dict = transaction_yaml_file.get("rule", [])
+
+    mock_read_yaml_file.assert_called_once()
 
     assert transaction_classified.description == row_dict[0].get("description")
     assert transaction_classified.account_id == row_dict[0].get("account_id")

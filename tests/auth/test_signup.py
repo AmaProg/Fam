@@ -4,12 +4,12 @@ from unittest.mock import patch, PropertyMock
 from fam.main import app
 
 
-def test_create_new_user(prepare_app, runner: CliRunner, mock_init_file_exists):
-
-    email: str = "Walker"
-    pwd = cfm_pwd = "123456789"
-
-    input_data: str = f"{email}\n{pwd}\n{cfm_pwd}\n"
+def test_create_new_user(
+    prepare_app, runner: CliRunner, 
+    mock_init_file_exists,
+    user_signup_input,
+    signup_command,
+):
 
     temp_dir, app_dir = prepare_app
 
@@ -18,13 +18,19 @@ def test_create_new_user(prepare_app, runner: CliRunner, mock_init_file_exists):
             mock_db_app.return_value = f"sqlite:///{(app_dir / "auth.db").as_posix()}"
             mock_typer.get_app_dir.return_value = app_dir.as_posix()
 
-            result = runner.invoke(app, ["signup"], input=input_data)
+            result = runner.invoke(app, signup_command, input=user_signup_input)
 
     assert result.exit_code == 0
     assert "Fam: The new database was successfully created." in result.stdout
     assert "Fam: Your account has been successfully created." in result.stdout
 
-def test_signup_when_user_already_exists_in_database(prepare_app, runner: CliRunner, mock_init_file_exists):
+def test_signup_when_user_already_exists_in_database(
+    prepare_app, 
+    runner: CliRunner, 
+    mock_init_file_exists,
+    signup_command,
+    user_signup_input,
+):
 
     email: str = "Walker"
     pwd = cfm_pwd = "123456789"
@@ -38,8 +44,8 @@ def test_signup_when_user_already_exists_in_database(prepare_app, runner: CliRun
             mock_db_app.return_value = f"sqlite:///{(app_dir / "auth.db").as_posix()}"
             mock_typer.get_app_dir.return_value = app_dir.as_posix()
 
-            runner.invoke(app, ["signup"], input=input_data)
-            result = runner.invoke(app, ["signup"], input=input_data)
+            runner.invoke(app, signup_command, input=user_signup_input)
+            result = runner.invoke(app, signup_command, input=user_signup_input)
 
     assert result.exit_code == 0
     assert "Fam: The user already exists." in result.stdout

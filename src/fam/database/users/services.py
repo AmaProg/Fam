@@ -17,7 +17,7 @@ from fam.database.users.schemas import (
     CreateClassify,
     CreateTransactionBM,
 )
-from fam.enums import BankEnum, TransactionType
+from fam.enums import AccountSection, BankEnum, FinancialProductEnum, TransactionType
 
 
 def create_user(db: Session, user: CreateUser):
@@ -246,10 +246,12 @@ def get_current_alembic_revision(db: Session):
     return current_revision
 
 
-def get_transaction_by_date_classification(
+def get_transaction_by_date_product_bank_classification(
     db: Session,
     date_from: int,
     date_to: int,
+    product: FinancialProductEnum,
+    bank: BankEnum,
     classsification_name: str,
 ) -> Sequence[TransactionTable]:
 
@@ -257,10 +259,15 @@ def get_transaction_by_date_classification(
         query: Select = (
             select(TransactionTable)
             .join(ClassificationTable)
+            .join(AccountTable)
             .where(
+                AccountTable.name == AccountSection.EXPENSE.value,
                 ClassificationTable.name == classsification_name,
                 TransactionTable.date.between(date_from, date_to),
                 TransactionTable.transaction_type == TransactionType.DEBIT.value,
+                TransactionTable.product == product.value,
+                TransactionTable.transaction_type == TransactionType.DEBIT.value,
+                TransactionTable.bank_name == bank.value,
             )
         )
 

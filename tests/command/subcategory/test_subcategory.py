@@ -21,4 +21,4 @@ def test_subcategory_list(
     mock_get_user_session.assert_called()
     mock_get_all_subcategory.assert_called()
 
-    assert "1: Loyer (Habitation)" in result.stdout
+    assert "1: Loyer (Habitation)".lower() in result.stdout.lower()

@@ -12,6 +12,7 @@ from fam.command.utils import (
 )
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import ClassificationTable, TransactionTable
+from fam.enums import BankEnum, FinancialProductEnum
 from fam.utils import fAborted, fprint, message_coming_soon, normalize_list
 from fam.command.billing import action
 from fam.database.users import services as user_services
@@ -33,6 +34,19 @@ def build(
     ] = None,
     to_: Annotated[
         str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+    ] = None,
+    product: Annotated[
+        FinancialProductEnum,
+        typer.Option(
+            "--product",
+            "-p",
+            prompt="Please indicate for which financial product",
+            case_sensitive=True,
+        ),
+    ] = None,
+    bank: Annotated[
+        BankEnum,
+        typer.Option("--bank", "-b", help="", prompt="Please indicate the bank"),
     ] = None,
 ):
 
@@ -87,11 +101,13 @@ def build(
 
                 # get transaction from date and classification
                 db_transaction: Sequence[TransactionTable] = (
-                    user_services.get_transaction_by_date_classification(
+                    user_services.get_transaction_by_date_product_bank_classification(
                         db=db,
                         date_from=date_to_timestamp(from_),
                         date_to=date_to_timestamp(to_),
                         classsification_name=name,
+                        product=product,
+                        bank=bank,
                     )
                 )
 
@@ -106,7 +122,7 @@ def build(
                 # Build each classification with colonne Subcategory | Amount Subcategory | Paiement Porportion | Amount with Proportion
                 action.generate_invoice_table(
                     classification_name=name,
-                    invoice_title=f"Invoice for {name}",
+                    invoice_title=f"Invoice for {name} transaction: {bank.value.upper()} - {product.value.capitalize()}",
                     transaction_list=db_transaction,
                 )
 

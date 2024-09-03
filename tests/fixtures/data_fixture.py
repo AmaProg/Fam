@@ -24,7 +24,7 @@ from fam.enums import BankEnum, FinancialProductEnum
 
 
 @fixture
-def sample_dataframe() -> pd.DataFrame:
+def BMO_CSV_dataframe() -> pd.DataFrame:
     # Données CSV en tant que chaîne de caractères
     csv_data = """Article no,Carte no,Date de la transaction,Date de l'inscription au relevé,Montant de la transaction,Description
 1,12345,20240801,20240801,100.00,Description 1

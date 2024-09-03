@@ -1,3 +1,5 @@
+from copy import copy
+from fam.bank import csv_herder
 from fam.enums import FinancialProductEnum
 
 
@@ -128,42 +130,70 @@ class FinancialInstitution:
         self._credit_card: CreditCard | None = None
         self._check_account: CheckAccount | None = None
         self._save_account: SaveAccount | None = None
+        self._csv_header: dict[FinancialProductEnum, str] = {
+            FinancialProductEnum.CREDIT_CARD: "None",
+            FinancialProductEnum.CHECKING_ACCOUNT: "None",
+        }
 
     def get_description(self, product: FinancialProductEnum) -> str:
 
-        description_dict: dict[FinancialProductEnum, str] = {
-            FinancialProductEnum.CREDIT_CARD: (
-                self._credit_card.description if self._credit_card else ""
-            ),
-            FinancialProductEnum.CHECKING_ACCOUNT: (
-                self._check_account.description if self._check_account else ""
-            ),
-        }
+        condition: list[str] = [
+            self._credit_card.description if self._credit_card is not None else "s",
+            self._check_account.description if self._check_account is not None else "d",
+        ]
 
-        return description_dict.get(product, "")
+        csv_header_build = self._build_csv_header(condition)
+
+        return csv_header_build.get(product, "No value")
 
     def get_transaction_date(self, product: FinancialProductEnum) -> str:
 
-        description_dict: dict[FinancialProductEnum, str] = {
-            FinancialProductEnum.CREDIT_CARD: (
-                self._credit_card.transaction_date if self._credit_card else ""
-            ),
-            FinancialProductEnum.CHECKING_ACCOUNT: (
-                self._check_account.registration_date if self._check_account else ""
-            ),
-        }
+        condition: list[str] = [
+            self._credit_card.transaction_date if self._credit_card else "",
+            self._check_account.registration_date if self._check_account else "",
+        ]
 
-        return description_dict.get(product, "")
+        csv_header_build = self._build_csv_header(condition)
+
+        return csv_header_build.get(product, "No Value")
 
     def get_transaction_amount(self, product: FinancialProductEnum) -> str:
 
-        description_dict: dict[FinancialProductEnum, str] = {
-            FinancialProductEnum.CREDIT_CARD: (
-                self._credit_card.transaction_amount if self._credit_card else ""
-            ),
-            FinancialProductEnum.CHECKING_ACCOUNT: (
-                self._check_account.amount if self._check_account else ""
-            ),
-        }
+        condition: list[str] = [
+            self._credit_card.transaction_amount if self._credit_card else "",
+            self._check_account.amount if self._check_account else "",
+        ]
 
-        return description_dict.get(product, "")
+        csv_header_build = self._build_csv_header(condition)
+
+        return csv_header_build.get(product, "No Value")
+
+    def _verify_lengths(self, condition: list, csv_header: dict) -> bool:
+        """
+        Vérifie si la longueur de la liste condition est égale à celle du dictionnaire csv_header.
+        Lève une exception si les longueurs sont différentes.
+
+        Args:
+            condition (list): Liste de conditions.
+            csv_header (dict): Dictionnaire contenant les clés à mettre à jour.
+
+        Returns:
+            bool: True si les longueurs sont égales.
+
+        Raises:
+            ValueError: Si les longueurs de condition et csv_header sont différentes.
+        """
+        if len(condition) != len(csv_header):
+            raise ValueError(
+                f"The lengths are different: condition = {len(condition)}, csv_header = {len(csv_header)}"
+            )
+        return True
+
+    def _build_csv_header(self, condition: list[str]):
+
+        self._verify_lengths(condition, self._csv_header)
+
+        for idx, key in enumerate(self._csv_header.keys()):
+            self._csv_header[key] = copy(condition[idx])
+
+        return self._csv_header

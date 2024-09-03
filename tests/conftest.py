@@ -27,7 +27,7 @@ from tests.fixtures.mock_fixture import (
 )
 from tests.fixtures.schemas_fixture import transaction_base_model_bmo_bank
 from tests.fixtures.data_fixture import (
-    sample_dataframe,
+    BMO_CSV_dataframe,
     transaction_list_form_database,
     subcategory_list_from_database,
     classification_list_from_database,
@@ -37,5 +37,5 @@ from tests.fixtures.data_fixture import (
     user_signup,
 )
 from tests.fixtures.typer import runner
-from tests.fixtures.input_fixture import user_login_input
-from tests.fixtures.command_fixture import login_command
+from tests.fixtures.input_fixture import user_login_input, user_signup_input
+from tests.fixtures.command_fixture import login_command, signup_command
