@@ -5,9 +5,7 @@ from tests.fixtures.app_fixture import (
     transaction_yaml_file,
 )
 from tests.fixtures.auth_fixture import (
-    user_login,
     prepare_database,
-    user_signup,
     prepare_user_database,
 )
 from tests.fixtures.mock_fixture import (
@@ -35,5 +33,9 @@ from tests.fixtures.data_fixture import (
     classification_list_from_database,
     account_from_database,
     database_url,
+    user_login,
+    user_signup,
 )
 from tests.fixtures.typer import runner
+from tests.fixtures.input_fixture import user_login_input
+from tests.fixtures.command_fixture import login_command

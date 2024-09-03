@@ -7,12 +7,12 @@ from fam.main import app
 
 
 def test_user_login(
-    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
+    runner: CliRunner,
+    prepare_database,
+    mock_init_file_exists,
+    user_login_input,
+    login_command,
 ):
-
-    email, pwd = user_login
-
-    input_login: str = input_value([email, pwd])
 
     config: dict[str, Any] = prepare_database
 
@@ -21,14 +21,18 @@ def test_user_login(
             mock_db_app.return_value = config["db_path"]
             mock_typer.get_app_dir.return_value = config["app_dir"]
 
-            result = runner.invoke(app, ["login"], input=input_login)
+            result = runner.invoke(app, login_command, input=user_login_input)
 
     assert result.exit_code == 0
     assert "Fam: Connection successful." in result.stdout
 
 
 def test_user_login_with_invalid_email(
-    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
+    runner: CliRunner,
+    user_login,
+    prepare_database,
+    mock_init_file_exists,
+    login_command,
 ):
 
     email, pwd = user_login
@@ -42,7 +46,7 @@ def test_user_login_with_invalid_email(
             mock_db_app.return_value = config["db_path"]
             mock_typer.get_app_dir.return_value = config["app_dir"]
 
-            result = runner.invoke(app, ["login"], input=input_login)
+            result = runner.invoke(app, login_command, input=input_login)
 
     assert result.exit_code == 1
     assert "Fam: The password or username is invalid." in result.stdout
@@ -50,7 +54,11 @@ def test_user_login_with_invalid_email(
 
 
 def test_user_login_with_invalid_password(
-    runner: CliRunner, user_login, prepare_database, mock_init_file_exists
+    runner: CliRunner,
+    user_login,
+    prepare_database,
+    mock_init_file_exists,
+    login_command,
 ):
 
     email, pwd = user_login
@@ -64,7 +72,7 @@ def test_user_login_with_invalid_password(
             mock_db_app.return_value = config["db_path"]
             mock_typer.get_app_dir.return_value = config["app_dir"]
 
-            result = runner.invoke(app, ["login"], input=input_login)
+            result = runner.invoke(app, login_command, input=input_login)
 
     assert result.exit_code == 1
     assert "Fam: The password or username is invalid." in result.stdout

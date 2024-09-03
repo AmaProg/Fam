@@ -304,9 +304,9 @@ def transaction(
                 transaction: CreateTransactionBM | None = classify_transaction_auto(
                     transaction=new_transaction,
                     bank=bank,
-                    bank_ins=bank_ins,
+                    institution=bank_ins,
                     database_url=database_url,
-                    product=product,
+                    financial_product=product,
                 )
 
                 # save transaction in the database

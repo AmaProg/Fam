@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
 from contextlib import contextmanager

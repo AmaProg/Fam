@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import Any, Literal, Sequence
+from typing import Literal, Sequence
+from pandas import DataFrame
 from rich import print
 import typer
 
+from fam.bank.constants import BANK_INSTANCE_TYPE
 from fam.database.users.models import T
-from fam.enums import BankEnum
+from fam.enums import BankEnum, FinancialProductEnum
 
 
 def build_choice(
@@ -44,23 +46,29 @@ def show_choice(choice: list[str], max_coloum: int = 3) -> None:
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:
     """
-    Converts a date string in the YYYYMMDD format to a Unix timestamp.
+    Converts a date string to a Unix timestamp based on the bank.
 
-    :param date_str: Date string in the YYYYMMDD format
-    :return: Unix timestamp corresponding to the date, or None if the date is invalid
+    :param date_str: Date string
+    :param bank: Bank enum
+    :return: Unix timestamp corresponding to the date, or 0 if the date is invalid
     """
-
-    func: dict[BankEnum, datetime] = {
-        BankEnum.BMO: datetime.strptime(date_str, "%Y%m%d"),
-        BankEnum.TANGERINE: datetime.now(),
+    # Define format strings for each bank
+    FORMAT_STRINGS: dict[BankEnum, str] = {
+        BankEnum.BMO: "%Y%m%d",
+        BankEnum.TANGERINE: "%m/%d/%Y",
     }
-    # Convert the string to a datetime object
-    date_obj = func.get(bank, datetime.now())
 
-    # Convert the datetime object to a Unix timestamp
-    timestamp = int(date_obj.timestamp())
+    format_str = FORMAT_STRINGS.get(bank)
 
-    return timestamp
+    if format_str is None:
+        raise ValueError(f"Unsupported bank: {bank}")
+
+    try:
+        date_obj = datetime.strptime(date_str, format_str)
+    except ValueError:
+        return 0  # Or handle invalid date string as needed
+
+    return int(date_obj.timestamp())
 
 
 def date_to_timestamp(date_str: str) -> int:
@@ -108,3 +116,24 @@ def is_valid_date(date_str: str) -> bool:
 
     except ValueError:
         return False
+
+
+def inverse_amount_sign_by_bank(
+    df: DataFrame,
+    bank: BankEnum,
+    institution: BANK_INSTANCE_TYPE,
+    financial_product: FinancialProductEnum,
+) -> DataFrame:
+
+    if (
+        bank == BankEnum.TANGERINE
+        and financial_product == FinancialProductEnum.CREDIT_CARD
+    ):
+        amount_column: str = institution.get_transaction_amount(financial_product)
+
+        df[amount_column] = -df[amount_column]
+
+        return df
+
+    else:
+        return df

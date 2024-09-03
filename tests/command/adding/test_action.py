@@ -212,9 +212,9 @@ def test_classify_transaction_auto_when_transaction_is_already_in_transaction_ru
 
     transaction_classified: CreateTransactionBM | None = classify_transaction_auto(
         bank=BankEnum.BMO,
-        bank_ins=bank_ins,
+        institution=bank_ins,
         database_url=database_url,
-        product=FinancialProductEnum.CREDIT_CARD,
+        financial_product=FinancialProductEnum.CREDIT_CARD,
         transaction=row,
     )
 

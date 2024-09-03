@@ -144,3 +144,16 @@ def classification_list_from_database():
 @fixture
 def database_url() -> str:
     return "sqlite:///C:/Users/user_name/AppData/Local/Financial_Advisor_for_Me/users/b5d49fb06b704b55bc4a9188b972ed78/db/user_database.db"
+
+
+@fixture
+def user_login():
+    email: str = "Walker"
+    password: str = "123456789"
+
+    return email, password
+
+
+@fixture
+def user_signup(user_login):
+    return user_login

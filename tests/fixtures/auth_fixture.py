@@ -22,19 +22,6 @@ def alembic_migration(db_path):
 
 
 @fixture
-def user_login():
-    email: str = "Walker"
-    password: str = "123456789"
-
-    return email, password
-
-
-@fixture
-def user_signup(user_login) -> None:
-    return user_login
-
-
-@fixture
 def prepare_user_database(prepare_app, transaction_list_form_database):
 
     temp_dir, app_dir = prepare_app
