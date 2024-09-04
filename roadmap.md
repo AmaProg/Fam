@@ -1,15 +1,21 @@
 # 1.X.X
 
-- Ajoute de la description subcategory dans la command create lors qu'on tappe --help
-- Correction du probleme de comparaison des description qui ont des caractere speciaux
-- Ajoute de la banque Tangerine pour afin traiter les donnee de cette banque.
 - Ajoute de la du paramettre classification poue filter par class
 - Integration d une command qui permet de supprimer les doublons dans la base de donnee
 - Demande de validation avant de traiter uen transaction lorsque nous creons une transaction.
 - Meilleure affichage lorsque nous pour les categorys.
 - Ajout de la commande update
 
-# 1.3.4
+# 1.3.5
+
+- **Intégration de la banque Tangerine**  
+  Pour le traitement des relevés de carte de crédit.
+
+- **Résolution du problème de comparaison des descriptions**  
+  Gérer correctement les descriptions contenant des caractères spéciaux.
+
+- **Ajout d'informations sur les sous-catégories**  
+  Afficher des détails sur la sous-catégorie dans l'aide de la commande `create` via l'option `--help`.
 
 
 # 1.2.4
