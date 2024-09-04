@@ -1,7 +1,5 @@
 from copy import copy
-from types import new_class
 from typing import Any, Sequence
-from sqlalchemy import ScalarResult
 from typing_extensions import Annotated
 from typer import Typer
 
@@ -12,12 +10,12 @@ from fam import auth
 from fam.bank.constants import BANK_INST, BANK_INSTANCE_TYPE
 from fam.command.adding.action import (
     classify_transaction_auto,
-    define_transaction_type,
     is_transaction_auto_classifiable,
 )
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
     AccountTable,
+    BankingInstitutionTable,
     CategoryTable,
     ClassificationTable,
     SubCategoryTable,
@@ -29,9 +27,15 @@ from fam.database.users.schemas import (
     CreateSubCategory,
     CreateTransactionBM,
 )
-from fam.enums import AccountSection, BankEnum, FinancialProductEnum, TransactionType
-from fam.utils import fAborted, fprint, fprint_panel
-from fam.database.users import services as user_services
+from fam.enums import (
+    AccountSectionEnum,
+    AccountTypeEnum,
+    BankEnum,
+    FinancialProductEnum,
+    TransactionTypeEnum,
+)
+from fam.utils import fAborted, fprint, fprint_panel, is_empty_list
+from fam.database.users import service, services as user_services
 from fam.command.utils import build_choice, date_to_timestamp, prompt_choice
 
 app = Typer(
@@ -56,7 +60,7 @@ def category(
         ),
     ] = None,
     account_type: Annotated[
-        AccountSection,
+        AccountSectionEnum,
         typer.Option(
             "--account",
             "-a",
@@ -244,7 +248,7 @@ def transaction(
         ),
     ] = None,
     transaction_type: Annotated[
-        TransactionType,
+        TransactionTypeEnum,
         typer.Option(
             "--transaction_type",
             "-t",
@@ -331,9 +335,9 @@ def transaction(
                     )
 
         # Display account name
-        account: AccountSection = typer.prompt(
-            type=AccountSection,
-            text=f"Please select an account ({[section.value for section in AccountSection]})",
+        account: AccountSectionEnum = typer.prompt(
+            type=AccountSectionEnum,
+            text=f"Please select an account ({[section.value for section in AccountSectionEnum]})",
         )
 
         db_account: AccountTable = user_services.get_account_id_by_name(
@@ -426,3 +430,75 @@ def classification(
         user_services.create_new_classification(db, [new_class])
 
     fprint("The classification has been added successfully.")
+
+
+@app.command(help="Allows you to create bank accounts")
+def bank_account(
+    account_type: Annotated[
+        AccountTypeEnum,
+        typer.Option(
+            "--account_type",
+            "-a",
+            help="Type of bank account",
+            prompt="What is the type of bank account?",
+        ),
+    ] = None,
+    name: Annotated[
+        str,
+        typer.Option(
+            "--name",
+            "-n",
+            help="Name or nickname of the bank account",
+            prompt="what is the name or nickname of the bank account?",
+        ),
+    ] = None,
+    amount: Annotated[
+        float,
+        typer.Option(
+            "--amount",
+            help="Amount in your bank account as of today",
+            prompt="How much is in your bank account as of today?",
+        ),
+    ] = None,
+):
+
+    # Retrieve the user's database URL
+    database_url: str = auth.get_user_database_url()
+
+    try:
+
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+            # Fetch banking institution data to select the bank name
+            db_institution: Sequence[BankingInstitutionTable] = (
+                service.banking_institution.get_all_bank_institution(db)
+            )
+
+            # Check if the database returns an empty list
+            if is_empty_list(db_institution) == False:
+                color: str = "green"
+                fprint(
+                    f"Please define an institution with the [{color}]add institution[/{color}] command."
+                )
+                raise typer.Abort()
+
+            # Display options for banking institutions
+            dict_institution, choice_institution = build_choice(db_institution)
+
+            institution_id: int = prompt_choice(
+                choice_institution, "Select a institution", ""
+            )
+
+            # Add the bank account to the database
+            service.bank_account.create_new_bank_Account(
+                account_type=account_type.value,
+                amount=amount,
+                bank_id=institution_id,
+                db=db,
+                name=name,
+            )
+
+            fprint("The bank account was added successfully")
+
+    except Exception as e:
+        fprint(e)

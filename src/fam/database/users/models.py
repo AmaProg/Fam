@@ -1,4 +1,5 @@
 from itertools import product
+from os import name
 from typing import TypeVar
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
 from sqlalchemy import CheckConstraint, ForeignKey, CheckConstraint
@@ -125,3 +126,29 @@ class TransactionTable(UserBase):
         back_populates="transaction",
     )
     # ----- End relationship -----
+
+
+class BankingInstitutionTable(UserBase):
+    __tablename__ = "banking_institution"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+
+    bank_account: Mapped["BankAcountTable"] = relationship(
+        "BankAcountTable", back_populates="banking_institution"
+    )
+
+
+class BankAcountTable(UserBase):
+    __tablename__ = "bank_account"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    account_type: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    amount: Mapped[float] = mapped_column(nullable=False)
+    banking_institution_id: Mapped[int] = mapped_column(
+        ForeignKey("banking_institution.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    banking_institution: Mapped["BankingInstitutionTable"] = relationship(
+        "BankingInstitutionTable", back_populates="bank_account"
+    )

@@ -17,7 +17,12 @@ from fam.database.users.schemas import (
     CreateClassify,
     CreateTransactionBM,
 )
-from fam.enums import AccountSection, BankEnum, FinancialProductEnum, TransactionType
+from fam.enums import (
+    AccountSectionEnum,
+    BankEnum,
+    FinancialProductEnum,
+    TransactionTypeEnum,
+)
 
 
 def create_user(db: Session, user: CreateUser):
@@ -261,12 +266,12 @@ def get_transaction_by_date_product_bank_classification(
             .join(ClassificationTable)
             .join(AccountTable)
             .where(
-                AccountTable.name == AccountSection.EXPENSE.value,
+                AccountTable.name == AccountSectionEnum.EXPENSE.value,
                 ClassificationTable.name == classsification_name,
                 TransactionTable.date.between(date_from, date_to),
-                TransactionTable.transaction_type == TransactionType.DEBIT.value,
+                TransactionTable.transaction_type == TransactionTypeEnum.DEBIT.value,
                 TransactionTable.product == product.value,
-                TransactionTable.transaction_type == TransactionType.DEBIT.value,
+                TransactionTable.transaction_type == TransactionTypeEnum.DEBIT.value,
                 TransactionTable.bank_name == bank.value,
             )
         )

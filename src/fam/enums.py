@@ -11,13 +11,23 @@ class FinancialProductEnum(Enum):
     CHECKING_ACCOUNT = "check account"
 
 
-class AccountSection(Enum):
+class AccountSectionEnum(Enum):
     INCOME = "income"
     EXPENSE = "expense"
     ASSET = "asset"
     PASSIVE = "passive"
 
 
-class TransactionType(Enum):
+class TransactionTypeEnum(Enum):
     CREDIT = "credit"
     DEBIT = "debit"
+
+
+class InvoiceTypeEnum(Enum):
+    CREDIT_CARD = "credit card"
+
+
+class AccountTypeEnum(Enum):
+    CHECK_ACCOUNT = "check"
+    INVESTMENT_ACCOUNT = "investment"
+    SAVE_ACCOUNT = "save"

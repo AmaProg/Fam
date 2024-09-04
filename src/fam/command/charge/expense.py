@@ -11,7 +11,7 @@ from fam import auth
 from fam.command.charge import actions
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import AccountTable, TransactionTable
-from fam.enums import AccountSection
+from fam.enums import AccountSectionEnum
 from fam.utils import fprint
 from fam.database.users import services as user_services
 
@@ -47,7 +47,7 @@ def build(
 
             # Get expense account id from database
             expense_account: AccountTable | None = user_services.get_account_id_by_name(
-                db, AccountSection.EXPENSE.value
+                db, AccountSectionEnum.EXPENSE.value
             )
 
             if expense_account is None:

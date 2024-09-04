@@ -105,6 +105,31 @@
       "program": "src/fam/main.py",
       "args": ["invoice", "build", "--from", "20240101", "--to", "20240731"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: add institution",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["add", "institution"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: create bank-account",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": [
+        "create",
+        "bank-account",
+        "-a",
+        "CeliApp",
+        "-n",
+        "Achat de maison",
+        "--amount",
+        "23562.36"
+      ],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

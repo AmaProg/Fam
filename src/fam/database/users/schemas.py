@@ -40,3 +40,14 @@ class TransactionBaseModel(BaseModel):
     subcategory_name: str
     amount: float
     pay_ratio: int
+
+
+class CreateInstitutionModel(BaseModel):
+    name: str
+
+
+class CreateBankAccount(BaseModel):
+    account_type: str
+    name: str
+    amount: float
+    banking_institution_id: int

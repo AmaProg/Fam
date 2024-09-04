@@ -12,7 +12,7 @@ from fam.command.utils import (
 )
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import ClassificationTable, TransactionTable
-from fam.enums import BankEnum, FinancialProductEnum
+from fam.enums import BankEnum, FinancialProductEnum, InvoiceTypeEnum
 from fam.utils import fAborted, fprint, message_coming_soon, normalize_list
 from fam.command.billing import action
 from fam.database.users import services as user_services
@@ -23,8 +23,45 @@ invoice_command: dict = {"app": app, "name": "invoice"}
 
 
 @app.command(help="Allows you to define the amounts needed to pay invoices.")
-def payment():
-    message_coming_soon()
+def payment(
+    invoice_type: Annotated[
+        InvoiceTypeEnum,
+        typer.Option(
+            "--invoice-type",
+            "-i",
+            help="Financial Product to pay",
+            prompt="Which financial product do you want to pay for?",
+        ),
+    ] = None,
+    bank: Annotated[
+        BankEnum,
+        typer.Option(
+            "--bank",
+            "-b",
+            help="Bank name",
+            prompt="Which bank do you want to pay your bill for?",
+        ),
+    ] = None,
+    from_: Annotated[
+        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+    ] = None,
+    to_: Annotated[
+        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+    ] = None,
+):
+    # Get user database url
+
+    # Get all transaction from invoice type and bank name
+
+    # get all bank account
+
+    # check if the db return empty list
+
+    # gourpe all subcategory and show the price and ask user with account do you yand payer this account
+
+    # save all transaction in the payment_invoice.yaml
+
+    fprint("")
 
 
 @app.command()

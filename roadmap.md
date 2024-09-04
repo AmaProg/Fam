@@ -1,10 +1,12 @@
-# 1.X.X
+# 1.4.6
 
-- Ajoute de la du paramettre classification poue filter par class
-- Integration d une command qui permet de supprimer les doublons dans la base de donnee
-- Demande de validation avant de traiter uen transaction lorsque nous creons une transaction.
-- Meilleure affichage lorsque nous pour les categorys.
-- Ajout de la commande update
+- Ajoute de la sous comment update transaction
+- Ajoute de la sous commande delete transaction
+- Ajoute de la sous commande get transacttion
+- Creation des nouvele table Bank acount et Banking institution pour entre les valeur reel des compte de banque.
+- dans la commande add nous avons ajouter une sous command appeler institution qui permet de ajouter des institution bancaire.
+- Dans la commande create nous avons ajouter la sous-commande bank-account qui permet de ajouter des comptes de banque afin de enter les valeur reelle des compte de banque.
+
 
 # 1.3.5
 

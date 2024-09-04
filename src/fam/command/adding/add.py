@@ -16,7 +16,7 @@ from fam.database.users.models import (
 )
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.utils import fAborted, fprint
-from fam.database.users import services as user_services
+from fam.database.users import service, services as user_services
 
 app = Typer(help="Allows you to add items to the folder.")
 
@@ -127,6 +127,37 @@ def statement(
 
     except typer.Abort as e:
         fAborted()
+
+    except Exception as e:
+        fprint(e)
+
+
+@app.command(help="Allows you to add a banking institution.")
+def institution(
+    name: Annotated[
+        str,
+        typer.Option(
+            "--name",
+            "-n",
+            help="",
+            prompt="What is the name of the institution?",
+        ),
+    ] = None,
+):
+    # Get user datbase url
+    database_url: str = auth.get_user_database_url()
+
+    try:
+
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+            # Add institution in the database
+            service.banking_institution.create_new_bank_institution_by_name(
+                db=db,
+                institution_name=name,
+            )
+
+            fprint("The banking institution was successfully added")
 
     except Exception as e:
         fprint(e)
