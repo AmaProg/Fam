@@ -13,6 +13,8 @@ if (Test-Path "$PARENT_DIR\.venv") {
     # Activer l'environnement virtuel
     . "$PARENT_DIR\.venv\Scripts\Activate.ps1"
 
+    pip install -r "$PARENT_DIR\requirements.txt"
+
 } else {
     Write-Output "Creating the virtual environment in $PARENT_DIR.."
     python -m venv "$PARENT_DIR\.venv"
