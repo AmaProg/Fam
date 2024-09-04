@@ -30,7 +30,7 @@ class AppCli:
 
     def __init__(self) -> None:
         self._app_name: str = "Financial Advisor for Me"
-        self._version: str = "1.2.4"
+        self._version: str = "1.3.5"
         self._desc: str = "Application for financial."
         self._directory: directory.Dir = directory.Dir()
         self._file: file.File = file.File(self._directory)
