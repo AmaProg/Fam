@@ -33,18 +33,18 @@ fam create category -n "Opérations Internes" -a expense -d "Gestion des opérat
 fam create subcategory
 
 --- Sous category Source de Revenue ---
-Revenus d’Interets,Dividendes[x]
-Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret,Remise en argent[x]
+Revenus d’Interets,Dividendes[1]
+Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret,Remise en argent[2]
 
 
 --- SOURCE ACTIF SOUS-CATEGORY ---
-Tresorerie,Compte Bancaire[x]
-Immobilisation financière[x]
+Tresorerie,Compte Bancaire[3]
+Immobilisation financière[4]
 
 
 --- SOURCE DEPENSE SOUS-CATEGORY ---
-Loyer,Electricite,Assurance Habitation[x]
-Assurance vie,Assurance medicament[x]
+Loyer,Electricite,Assurance Habitation[7]
+Assurance vie,Assurance medicament[8]
 Essence,Entretiens et Reparation,Abonnement Routier,Permis de conduire,Constat d'infraction[9]
 Cellulaire,Internet[10]
 Epicerie,Restaurant[11]
@@ -58,5 +58,5 @@ Startup,OIQ[18]
 Frais de placement,Frais de courtage,Pertes sur créances[19]
 Impôt sur interet[20]
 Comptabilite[21]
-Frais de Service Bancaire,Frais de Transaction,Frais de Découvert
-Transfert entre comptes internes
+Frais de Service Bancaire,Frais de Transaction,Frais de Découvert[22]
+Transfert entre comptes internes[23]

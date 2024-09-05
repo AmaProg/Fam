@@ -318,12 +318,12 @@ def classify_transactions(
 
     for idx, transaction in df_csv.iterrows():
 
+        transaction_date: str = str(transaction[bank_ins.get_transaction_date(product)])
+
         db_transaction: TransactionTable | None = (
             user_services.get_transaction_by_date_desc_bank(
                 db=db,
-                date=date_to_timestamp_by_bank(
-                    str(transaction[bank_ins.get_transaction_date(product)]), bank
-                ),
+                date=date_to_timestamp_by_bank(transaction_date, bank),
                 desc=transaction[bank_ins.get_description(product)],
                 bank=bank,
             )
