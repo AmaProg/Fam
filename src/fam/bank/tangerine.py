@@ -21,6 +21,5 @@ check_account: CheckAccount = CheckAccount(
 class Tangerine(FinancialInstitution):
 
     def __init__(self) -> None:
-        super().__init__
+        super().__init__()
         self._credit_card = credit_card
-        self._check_account = check_account
