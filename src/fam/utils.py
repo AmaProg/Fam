@@ -88,3 +88,8 @@ def normalize_list(s: str) -> list[str]:
 
 def message_coming_soon() -> None:
     fprint("This command is coming soon")
+
+
+def is_empty_list(l: Any) -> bool:
+
+    return True if len(l) != 0 else False
