@@ -6,6 +6,10 @@
 - Meilleure affichage lorsque nous pour les categorys.
 - Ajout de la commande update
 
+# 1.3.7
+
+- Correction du problem : 'Tangerine' object has no attribute '_csv_header'
+
 # 1.3.6
 
 - Correction des comparaison des description dans le classement des transaction automatique
