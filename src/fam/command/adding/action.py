@@ -242,10 +242,6 @@ def classify_transaction_auto(
     if old_transaction is None:
         return None
 
-    # amount_value: float = transaction[
-    #     institution.get_transaction_amount(financial_product)
-    # ]
-
     transaction_classified = create_new_transaction(
         desc=old_transaction.description,
         financial_product=financial_product,
@@ -253,23 +249,9 @@ def classify_transaction_auto(
         transaction_date=transaction_date,
         bank=bank,
         classification_id=old_transaction.classification_id,
-        subcategory_id=old_transaction.account_id,
+        subcategory_id=old_transaction.subcategory_id,
         account_id=old_transaction.account_id,
     )
-
-    # transaction_classified = CreateTransactionBM(
-    #     description=old_transaction.description,
-    #     product=old_transaction.product,
-    #     amount=abs(amount_value),
-    #     date=date_to_timestamp_by_bank(
-    #         str(transaction[institution.get_transaction_date(financial_product)]), bank
-    #     ),
-    #     bank_name=old_transaction.bank_name,
-    #     classification_id=old_transaction.classification_id,
-    #     subcategory_id=old_transaction.subcategory_id,
-    #     account_id=old_transaction.account_id,
-    #     transaction_type=define_transaction_type(amount_value, financial_product),
-    # )
 
     return transaction_classified
 
