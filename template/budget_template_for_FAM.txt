@@ -40,6 +40,8 @@ Salaire net,Remboursement d’impot,Autres revenu,Remboursement de pret,Remise e
 --- SOURCE ACTIF SOUS-CATEGORY ---
 Tresorerie,Compte Bancaire[3]
 Immobilisation financière[4]
+Capitaux propre[5]
+Dette[6]
 
 
 --- SOURCE DEPENSE SOUS-CATEGORY ---

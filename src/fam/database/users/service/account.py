@@ -19,12 +19,14 @@ def create_account_by_account_model(
 
         for account in account_schemas_list:
 
-            account_table_list.append(copy(AccountTable(**account.model_dump())))
+            new_account: AccountTable = AccountTable(**account.model_dump())
+
+            account_table_list.append(new_account)
 
         db.add_all(account_table_list)
         db.commit()
 
-        for account_table in account_schemas_list:
+        for account_table in account_table_list:
 
             db.refresh(account_table)
 

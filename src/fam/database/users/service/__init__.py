@@ -3,4 +3,6 @@ from fam.database.users.service import (
     bank_account,
     account,
     classification,
+    category,
+    subcategory,
 )

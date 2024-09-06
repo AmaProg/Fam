@@ -15,7 +15,7 @@ from fam.database.users.models import (
 )
 from fam.database.users.schemas import (
     AccountSchemas,
-    CategoryBM,
+    CategorySchemas,
     ClassifySchemas,
     CreateTransactionBM,
 )
@@ -102,7 +102,7 @@ def get_account_id_by_name(db: Session, account_name) -> AccountTable | None:
         db.rollback()
 
 
-def create_new_category(db: Session, cat: CategoryBM) -> None:
+def create_new_category(db: Session, cat: CategorySchemas) -> None:
 
     try:
 

@@ -6,7 +6,7 @@ class AccountSchemas(BaseModel):
     description: str
 
 
-class CategoryBM(BaseModel):
+class CategorySchemas(BaseModel):
     name: str
     description: str
     account_id: int
