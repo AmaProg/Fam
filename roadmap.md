@@ -1,8 +1,6 @@
-# 1.3.6
+# 1.4.6
 
-# 1.3.6
-
-- Correction des comparaison des description dans le classement des transaction automatique
+- Précharge des données telles que les catégories et sous-catégories dans la base de données lors de l'inscription
 
 # 1.3.5
 
