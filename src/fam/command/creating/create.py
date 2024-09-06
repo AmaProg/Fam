@@ -22,8 +22,8 @@ from fam.database.users.models import (
     TransactionTable,
 )
 from fam.database.users.schemas import (
-    CategoryBM,
-    CreateClassify,
+    CategorySchemas,
+    ClassifySchemas,
     CreateSubCategory,
     CreateTransactionBM,
 )
@@ -109,7 +109,7 @@ def category(
             if account_table is None:
                 raise typer.Abort()
 
-            cat_base_model: CategoryBM = CategoryBM(
+            cat_base_model: CategorySchemas = CategorySchemas(
                 name=name,
                 description=desc,
                 account_id=account_table.id,
@@ -423,7 +423,7 @@ def classification(
             raise typer.Abort()
 
         # Add the new classification to the database
-        new_class: CreateClassify = CreateClassify(
+        new_class: ClassifySchemas = ClassifySchemas(
             name=name,
         )
 

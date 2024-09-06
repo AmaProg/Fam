@@ -1,18 +1,6 @@
 # 1.4.6
 
-- Ajoute de la du paramettre classification poue filter par class
-- Integration d une command qui permet de supprimer les doublons dans la base de donnee
-- Demande de validation avant de traiter uen transaction lorsque nous creons une transaction.
-- Meilleure affichage lorsque nous pour les categorys.
-- Ajout de la commande update
-
-# 1.3.7
-
-- Correction du problem : 'Tangerine' object has no attribute '_csv_header'
-
-# 1.3.6
-
-- Correction des comparaison des description dans le classement des transaction automatique
+- Précharge des données telles que les catégories et sous-catégories dans la base de données lors de l'inscription
 
 # 1.3.5
 
