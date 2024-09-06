@@ -16,9 +16,10 @@ from fam import utils
 from fam.database.db import DatabaseType, get_db
 from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
-from fam.database.users.models import  UserBase
-from fam.database.users.schemas import AccountBM, CreateClassify
+from fam.database.users.models import  AccountTable, UserBase
+from fam.database.users.schemas import AccountSchemas, ClassifySchemas
 from fam.database.users import services as user_services
+from fam.setup.db import init_account_table, init_category_table, init_classification_table
 from fam.system.file import File
 from fam.system.settings import settings
 from fam.utils import fprint
@@ -133,38 +134,33 @@ def _apply_migrations(database_url: str) -> None:
     
         settings.update.apply_database_migrations(database_url=database_url)
     
-        # Configure Alembic with the new DATABASE_URL
-        # alembic_cfg = Config("alembic_users.ini")
-        # alembic_cfg.set_main_option("user_database_url", database_url)
-        # alembic_cfg.set_main_option("is_user", "True")
-        # alembic_cfg.set_main_option("script_location", "alembic/users")
-        
-        # script = ScriptDirectory.from_config(alembic_cfg)
-        # latest_script = script.get_current_head()
-        # current_revision = latest_script
-        
-        # # Apply Alembic migrations
-        # if current_revision is None:
-        #     cmd =  command.revision(alembic_cfg, autogenerate=True, message="Init database")
-        #     command.upgrade(alembic_cfg, cmd.revision)
-        # else:
-        #     command.upgrade(alembic_cfg, "heads")
+
 
 def _initialize_default_data(database_url: str):
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
-        accounts: list[AccountBM] = [
-            AccountBM( name="income", description="Income account."),
-            AccountBM( name="expense", description="Expense account."),
-            AccountBM( name="asset", description="Asset account."),
-            AccountBM( name="passive", description="Passive account."),
-        ]
-        classifications = [
-                    CreateClassify(name="personel"),
-                    CreateClassify(name="family")
-                ]
         
-        user_services.create_account(db, accounts)
-        user_services.create_new_classification(db, classifications)
+        account_table: list[AccountTable] =  init_account_table(db)
+        
+        init_classification_table(db)
+        
+        init_category_table(db)
+        
+        
+        
+        # accounts: list[AccountSchemas] = [
+        #     AccountSchemas( name="income", description="Income account."),
+        #     AccountSchemas( name="expense", description="Expense account."),
+        #     AccountSchemas( name="asset", description="Asset account."),
+        #     AccountSchemas( name="passive", description="Passive account."),
+        # ]
+        # classifications = [
+        #             ClassifySchemas(name="personel"),
+        #             ClassifySchemas(name="family")
+        #         ]
+    
+        
+        # user_services.create_account(db, accounts)
+        # user_services.create_new_classification(db, classifications)
 
 def create_file(user_folder: Path) -> None:
     try:

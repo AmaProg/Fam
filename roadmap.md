@@ -1,10 +1,4 @@
-# 1.4.6
-
-- Ajoute de la du paramettre classification poue filter par class
-- Integration d une command qui permet de supprimer les doublons dans la base de donnee
-- Demande de validation avant de traiter uen transaction lorsque nous creons une transaction.
-- Meilleure affichage lorsque nous pour les categorys.
-- Ajout de la commande update
+# 1.3.6
 
 # 1.3.6
 

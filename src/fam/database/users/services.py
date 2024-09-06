@@ -1,4 +1,6 @@
 from typing import Sequence
+import typing_extensions
+import warnings
 from sqlalchemy.orm import Session
 from sqlalchemy import Select, Update, select, update, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,9 +14,9 @@ from fam.database.users.models import (
     TransactionTable,
 )
 from fam.database.users.schemas import (
-    AccountBM,
+    AccountSchemas,
     CategoryBM,
-    CreateClassify,
+    ClassifySchemas,
     CreateTransactionBM,
 )
 from fam.enums import (
@@ -38,7 +40,8 @@ def create_user(db: Session, user: CreateUser):
         db.rollback()
 
 
-def create_account(db: Session, accounts: list[AccountBM]) -> None:
+@typing_extensions.deprecated("pomme", category=None)
+def create_account(db: Session, accounts: list[AccountSchemas]) -> None:
 
     try:
 
@@ -123,7 +126,8 @@ def create_transaction(db: Session, transactions: list[TransactionTable]) -> Non
         print(f"Commit failed: {e}")
 
 
-def create_new_classification(db: Session, classifies: list[CreateClassify]):
+@typing_extensions.deprecated("pomme", category=None)
+def create_new_classification(db: Session, classifies: list[ClassifySchemas]):
 
     try:
         new_classify: list[ClassificationTable] = [

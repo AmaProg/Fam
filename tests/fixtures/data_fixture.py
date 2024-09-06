@@ -16,7 +16,7 @@ from fam.database.users.models import (
     TransactionTable,
 )
 from fam.database.users.schemas import (
-    CreateClassify,
+    ClassifySchemas,
     CreateSubCategory,
     CreateTransactionBM,
 )
@@ -125,13 +125,13 @@ def subcategory_list_from_database():
 def classification_list_from_database():
 
     class_table: ClassificationTable
-    class_bm: CreateClassify
+    class_bm: ClassifySchemas
     class_table_list: list[ClassificationTable] = []
 
     name_list: list[str] = ["Personnal", "Familiy", "Couple"]
 
     for idx, name in enumerate(name_list):
-        class_bm = CreateClassify(name=name)
+        class_bm = ClassifySchemas(name=name)
 
         class_table = ClassificationTable(**class_bm.model_dump())
 

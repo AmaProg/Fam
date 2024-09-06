@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class AccountBM(BaseModel):
+class AccountSchemas(BaseModel):
     name: str
     description: str
 
@@ -25,7 +25,7 @@ class CreateTransactionBM(BaseModel):
     account_id: int
 
 
-class CreateClassify(BaseModel):
+class ClassifySchemas(BaseModel):
     name: str
 
 

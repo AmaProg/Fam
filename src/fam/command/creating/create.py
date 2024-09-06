@@ -23,7 +23,7 @@ from fam.database.users.models import (
 )
 from fam.database.users.schemas import (
     CategoryBM,
-    CreateClassify,
+    ClassifySchemas,
     CreateSubCategory,
     CreateTransactionBM,
 )
@@ -423,7 +423,7 @@ def classification(
             raise typer.Abort()
 
         # Add the new classification to the database
-        new_class: CreateClassify = CreateClassify(
+        new_class: ClassifySchemas = ClassifySchemas(
             name=name,
         )
 
