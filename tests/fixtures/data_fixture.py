@@ -1,13 +1,10 @@
 from datetime import datetime
-import random
 from io import StringIO
 from typing import Sequence
 
 import pandas as pd
 from pytest import fixture
-from sqlalchemy import desc
 
-from fam.command.creating.create import subcategory
 from fam.database.users.models import (
     AccountTable,
     CategoryTable,

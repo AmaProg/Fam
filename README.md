@@ -19,7 +19,7 @@ Clonez ou téléchargez le dépôt Git contenant l'application sur votre ordinat
 `C:\user\src\FAM`
 
 ```bash
-git clone https://github.com/username/FAM.git
+git clone https://github.com/AmaProg/Fam.git
 ```
 
 ### Étape 2 : Ajouter le chemin de l'application aux variables d'environnement (Windows)

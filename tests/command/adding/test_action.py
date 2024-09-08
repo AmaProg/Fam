@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 
 from fam import filename
@@ -12,7 +11,6 @@ from fam.command.adding.action import (
 from fam.database.users.schemas import CreateTransactionBM
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.bank import constants as kbank
-from pytest_lazyfixture import lazy_fixture
 
 
 def test_get_transaction_rule_path(database_url):

@@ -1,5 +1,4 @@
 from copy import copy
-from fam.bank import csv_herder
 from fam.enums import FinancialProductEnum
 
 
