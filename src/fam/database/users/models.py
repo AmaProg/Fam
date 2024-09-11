@@ -1,8 +1,6 @@
-from itertools import product
-from os import name
 from typing import TypeVar
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-from sqlalchemy import CheckConstraint, ForeignKey, CheckConstraint
+from sqlalchemy import ForeignKey
 
 
 UserBase = declarative_base()

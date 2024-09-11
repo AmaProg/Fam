@@ -130,6 +130,14 @@
         "23562.36"
       ],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: income-statement",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["finance", "income-statement"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

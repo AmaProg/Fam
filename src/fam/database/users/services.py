@@ -175,13 +175,13 @@ def get_transaction_by_account_id(
 
 
 def get_transaction_by_date_desc_bank(
-    db: Session, date: int, desc: str, bank: BankEnum
+    db: Session, date: int, desc: str, bank: str
 ) -> TransactionTable | None:
 
     query: Select = select(TransactionTable).where(
         TransactionTable.date == date,
         TransactionTable.description.ilike(desc.upper()),
-        TransactionTable.bank_name == bank.value,
+        TransactionTable.bank_name == bank,
     )
 
     transaction: TransactionTable = db.scalar(query)

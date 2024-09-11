@@ -5,4 +5,5 @@ from fam.database.users.service import (
     classification,
     category,
     subcategory,
+    transaction,
 )
