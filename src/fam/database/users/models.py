@@ -87,6 +87,7 @@ class TransactionTable(UserBase):
     __tablename__ = "transaction"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    hash: Mapped[str] = mapped_column(nullable=True)
     description: Mapped[str] = mapped_column(nullable=True)
     product: Mapped[str] = mapped_column(nullable=False)
     amount: Mapped[float] = mapped_column(nullable=True)

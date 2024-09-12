@@ -25,7 +25,7 @@ from fam.database.users.schemas import (
     CategorySchemas,
     ClassifySchemas,
     CreateSubCategory,
-    CreateTransactionBM,
+    CreateTransactionModel,
 )
 from fam.enums import (
     AccountSectionEnum,
@@ -267,7 +267,7 @@ def transaction(
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
         # Create a new transaction
-        new_transaction: CreateTransactionBM = CreateTransactionBM(
+        new_transaction: CreateTransactionModel = CreateTransactionModel(
             description=description.upper(),
             product=product.value,
             amount=abs(amount),

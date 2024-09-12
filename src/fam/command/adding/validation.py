@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any
-from fam.database.users.schemas import CreateTransactionBM
+from fam.database.users.schemas import CreateTransactionModel
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.system.file import File
 from fam.utils import get_user_dir_from_database_url, normalize_string
@@ -29,7 +29,7 @@ def is_transaction_auto_classifiable(
 
     rules_list: list[dict[str, Any]] = content.get("rule", [])
 
-    trans_base_model: CreateTransactionBM | None = matches_transaction_rule(
+    trans_base_model: CreateTransactionModel | None = matches_transaction_rule(
         rules=rules_list,
         bank=bank.value,
         product=product.value,
@@ -72,6 +72,6 @@ def matches_transaction_rule(
             and normalize_string(rule_product) == normalized_product
             and normalize_string(rule_bank) == normalized_bank
         ):
-            return CreateTransactionBM(**rule)
+            return CreateTransactionModel(**rule)
 
     return None

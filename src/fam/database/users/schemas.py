@@ -12,7 +12,8 @@ class CategorySchemas(BaseModel):
     account_id: int
 
 
-class CreateTransactionBM(BaseModel):
+class CreateTransactionModel(BaseModel):
+    hash: str
     description: str
     product: str
     amount: float

@@ -8,7 +8,7 @@ from fam.command.adding.action import (
     get_transaction_rule_file,
     is_transaction_auto_classifiable,
 )
-from fam.database.users.schemas import CreateTransactionBM
+from fam.database.users.schemas import CreateTransactionModel
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.bank import constants as kbank
 
@@ -215,12 +215,12 @@ def test_classify_transaction_auto_when_transaction_is_already_in_transaction_ru
 
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[BankEnum.BMO]
 
-    transaction_classified: CreateTransactionBM | None = classify_transaction_auto(
+    transaction_classified: CreateTransactionModel | None = classify_transaction_auto(
         bank=BankEnum.BMO,
         institution=bank_ins,
         database_url=database_url,
         financial_product=FinancialProductEnum.CREDIT_CARD,
-        transaction=row,
+        transaction=row.to_dict(),
     )
 
     row_dict = transaction_yaml_file.get("rule", [])

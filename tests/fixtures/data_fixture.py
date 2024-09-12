@@ -15,9 +15,10 @@ from fam.database.users.models import (
 from fam.database.users.schemas import (
     ClassifySchemas,
     CreateSubCategory,
-    CreateTransactionBM,
+    CreateTransactionModel,
 )
 from fam.enums import BankEnum, FinancialProductEnum
+from fam.security import generate_transaction_hash
 
 
 @fixture
@@ -52,7 +53,7 @@ def transaction_list_form_database():
     amount_list: list[float] = [6.50, 100.50, 700.00]
     category_list: list[str] = ["Restaurant", "Habitation", "Habitation"]
     data_list: list[str] = ["20240115", "20240120", "20240215"]
-    new_transaction: CreateTransactionBM
+    new_transaction: CreateTransactionModel
     expense_account = 2
     personel_class = 1
 
@@ -67,7 +68,7 @@ def transaction_list_form_database():
 
         date_format: datetime = datetime.strptime(data_list[idx], "%Y%m%d")
 
-        new_transaction = CreateTransactionBM(
+        new_transaction = CreateTransactionModel(
             description=trans_desc,
             amount=amount_list[idx],
             bank_name=BankEnum.BMO.value,
@@ -76,6 +77,7 @@ def transaction_list_form_database():
             account_id=expense_account,
             classification_id=personel_class,
             subcategory_id=subcategory_list[idx],
+            hash=generate_transaction_hash({}),
         )
 
         trans_table: TransactionTable = TransactionTable(**new_transaction.model_dump())

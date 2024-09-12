@@ -17,7 +17,7 @@ from fam.database.users.schemas import (
     AccountSchemas,
     CategorySchemas,
     ClassifySchemas,
-    CreateTransactionBM,
+    CreateTransactionModel,
 )
 from fam.enums import (
     AccountSectionEnum,
@@ -189,7 +189,7 @@ def get_transaction_by_date_desc_bank(
     return transaction
 
 
-def update_transaction_by_desc(db: Session, desc, update_trans: CreateTransactionBM):
+def update_transaction_by_desc(db: Session, desc, update_trans: CreateTransactionModel):
 
     query: Update = (
         update(TransactionTable)
