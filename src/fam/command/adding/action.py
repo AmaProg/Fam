@@ -24,7 +24,7 @@ from fam.database.users.models import (
     TransactionTable,
 )
 from fam.database.users.schemas import CreateTransactionBM
-from fam.enums import BankEnum, FinancialProductEnum
+from fam.enums import BankEnum, FinancialProductEnum, TransactionTypeEnum
 from fam.database.users import services as user_services
 from fam.system.file import File
 from fam.utils import fprint, get_user_dir_from_database_url
@@ -105,14 +105,6 @@ def classify_transaction_manually(
         transaction=transaction,
     )
 
-    # description: str = transaction[institution.get_description(financial_product)]
-    # transaction_amount: float = transaction[
-    #     institution.get_transaction_amount(financial_product)
-    # ]
-    # transaction_date: str = transaction[
-    #     institution.get_transaction_date(financial_product)
-    # ]
-
     # show the message to select a subcategory.
     subcat_id: int = prompt_choice(
         subcat_choice,
@@ -145,19 +137,6 @@ def classify_transaction_manually(
         classification_id=cls_id,
         account_id=sub_table.category.account_id,
     )
-
-    # new_transaction: CreateTransactionBM = CreateTransactionBM(
-    #     description=transaction[bank_ins.get_description(product)],
-    #     product=product.value,
-    #     amount=transaction[bank_ins.get_transaction_amount(product)],
-    #     date=date_to_timestamp_by_bank(
-    #         str(transaction[bank_ins.get_transaction_date(product)]), bank
-    #     ),
-    #     bank_name=bank.value,
-    #     classification_id=cls_id,
-    #     subcategory_id=subcat_id,
-    #     account_id=sub_table.category.account.id,
-    # )
 
     trans_table: TransactionTable | None = (
         user_services.get_transaction_by_date_desc_bank(
@@ -259,13 +238,15 @@ def classify_transaction_auto(
 def define_transaction_type(amount: float, product: FinancialProductEnum) -> str:
 
     negatif_amount: dict[FinancialProductEnum, str] = {
-        FinancialProductEnum.CREDIT_CARD: "credit",
-        FinancialProductEnum.CHECKING_ACCOUNT: "debit",
+        FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.CREDIT.value,
+        FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.CREDIT.value,
+        FinancialProductEnum.SAVE_ACCOUNT: TransactionTypeEnum.CREDIT.value,
     }
 
     positif_amount: dict[FinancialProductEnum, str] = {
-        FinancialProductEnum.CREDIT_CARD: "debit",
-        FinancialProductEnum.CHECKING_ACCOUNT: "credit",
+        FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.DEBIT.value,
+        FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.DEBIT.value,
+        FinancialProductEnum.SAVE_ACCOUNT: TransactionTypeEnum.DEBIT.value,
     }
 
     if amount > 0:
@@ -290,6 +271,13 @@ def classify_transactions(
     transactions: list[TransactionTable] = []
 
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
+
+    if bank == BankEnum.TANGERINE:
+        df[bank_ins.get_description(product)] = (
+            df[bank_ins.get_description(product)].astype(str)
+            + "_"
+            + df[bank_ins.get_name(product)].astype(str)
+        )
 
     df_csv = inverse_amount_sign_by_bank(
         df=df,
@@ -373,7 +361,7 @@ def create_new_transaction(
     bank: BankEnum,
 ) -> CreateTransactionBM:
     new_transaction: CreateTransactionBM = CreateTransactionBM(
-        description=desc,
+        description=desc.strip(),
         product=financial_product.value,
         amount=abs(transaction_amount),
         date=date_to_timestamp_by_bank(str(transaction_date), bank),

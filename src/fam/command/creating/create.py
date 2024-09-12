@@ -31,7 +31,9 @@ from fam.enums import (
     AccountSectionEnum,
     AccountTypeEnum,
     BankEnum,
+    FinancialAccountEnum,
     FinancialProductEnum,
+    InstitutionEnum,
     TransactionTypeEnum,
 )
 from fam.utils import fAborted, fprint, fprint_panel, is_empty_list
@@ -199,7 +201,7 @@ def transaction(
         ),
     ] = "",
     product: Annotated[
-        FinancialProductEnum,
+        FinancialAccountEnum,
         typer.Option(
             "--product",
             "-p",
@@ -226,13 +228,14 @@ def transaction(
             prompt="Please enter the transaction date.",
         ),
     ] = "",
-    bank: Annotated[
-        BankEnum,
+    institution: Annotated[
+        InstitutionEnum,
         typer.Option(
-            "--bank",
-            "-b",
+            "--institution",
+            "-i",
             help="The name of the bank which generated the transaction.",
             prompt="Please enter bank name",
+            case_sensitive=False,
             show_choices=True,
         ),
     ] = None,
@@ -269,7 +272,7 @@ def transaction(
             product=product.value,
             amount=abs(amount),
             date=date_to_timestamp(date),
-            bank_name=bank,
+            bank_name=institution.value,
             payment_proportion=(pay_proportion / 100),
             account_id=0,
             classification_id=0,
@@ -281,7 +284,7 @@ def transaction(
         db_transaction: TransactionTable = (
             user_services.get_transaction_by_date_desc_bank(
                 db=db,
-                bank=bank,
+                bank=institution.value,
                 date=new_transaction.date,
                 desc=new_transaction.description,
             )
@@ -291,48 +294,7 @@ def transaction(
             fprint("The transaction already exists in the database.")
             return
 
-        bank_ins: BANK_INSTANCE_TYPE = BANK_INST[bank]
-
         trans_table_list: list[TransactionTable] = []
-
-        # check if the transaction can be classify automatically
-        if is_transaction_auto_classifiable(
-            database_url=database_url,
-            product=product,
-            trans_desc=new_transaction.description,
-            bank=bank,
-        ):
-            if typer.confirm(
-                "This transaction can be classified automatically. Do you want to classify it?"
-            ):
-                transaction: CreateTransactionBM | None = classify_transaction_auto(
-                    transaction=new_transaction,
-                    bank=bank,
-                    institution=bank_ins,
-                    database_url=database_url,
-                    financial_product=product,
-                )
-
-                # save transaction in the database
-                if transaction is not None:
-
-                    trans_table_list.append(
-                        TransactionTable(**transaction.model_dump())
-                    )
-
-                    user_services.create_transaction(
-                        db=db,
-                        transactions=trans_table_list,
-                    )
-
-                    fprint("The transaction was added successfully.")
-                    return
-
-                else:
-                    fprint_panel(
-                        msg="An error occurred during classification. We will classify the transaction manually.",
-                        title="Auto Classification Fail",
-                    )
 
         # Display account name
         account: AccountSectionEnum = typer.prompt(

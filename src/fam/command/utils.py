@@ -1,11 +1,13 @@
 from datetime import datetime
-from typing import Literal, Sequence
+from typing import Any, Literal, Sequence
 from pandas import DataFrame
 from rich import print
 import typer
+import pandas as pd
 
 from fam.bank.constants import BANK_INSTANCE_TYPE
-from fam.database.users.models import T
+from fam.database.users.models import T, TransactionTable
+from fam.database.users.schemas import TransactionBaseModel
 from fam.enums import BankEnum, FinancialProductEnum
 
 
@@ -93,7 +95,7 @@ def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
 
     prompt_int: int = typer.prompt(
         type=int,
-        text=f"{msg} for {transac_desc}",
+        text=f"{msg} for {transac_desc}".strip(),
     )
 
     return prompt_int
@@ -126,8 +128,24 @@ def inverse_amount_sign_by_bank(
 ) -> DataFrame:
 
     if (
-        bank == BankEnum.TANGERINE
-        and financial_product == FinancialProductEnum.CREDIT_CARD
+        (
+            bank == BankEnum.TANGERINE
+            and financial_product == FinancialProductEnum.CREDIT_CARD
+        )
+        or (
+            bank == BankEnum.BMO
+            and (
+                financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+                or financial_product == FinancialProductEnum.SAVE_ACCOUNT
+            )
+        )
+        or (
+            bank == BankEnum.TANGERINE
+            and (
+                financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+                or financial_product == FinancialProductEnum.SAVE_ACCOUNT
+            )
+        )
     ):
         amount_column: str = institution.get_transaction_amount(financial_product)
 
@@ -137,3 +155,25 @@ def inverse_amount_sign_by_bank(
 
     else:
         return df
+
+
+def convert_db_transaction_to_dataframe(
+    db_transaction: Sequence[TransactionTable],
+) -> DataFrame:
+
+    # Conversion des transactions en une liste de dictionnaires
+    transaction_model_list: list[dict[str, Any]] = [
+        TransactionBaseModel(
+            class_name=t.classification.name,
+            category_name=t.subcategory.category.name,
+            subcategory_name=t.subcategory.name,
+            amount=t.amount,
+            pay_ratio=int(t.payment_proportion * 100),
+        ).model_dump()
+        for t in db_transaction
+    ]
+
+    # Conversion de la liste en DataFrame pandas
+    df: DataFrame = pd.DataFrame(data=transaction_model_list)
+
+    return df
