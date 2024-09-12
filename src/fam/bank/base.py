@@ -1,3 +1,4 @@
+from asyncio import Condition
 from copy import copy
 from fam.enums import FinancialProductEnum
 
@@ -52,6 +53,7 @@ class CheckAccount:
         registration_date: str,
         amount: str,
         description: str,
+        name: str,
     ) -> None:
         """
         Initialize a new Transaction instance.
@@ -67,6 +69,7 @@ class CheckAccount:
         self.registration_date: str = registration_date
         self.amount: str = amount
         self.description: str = description
+        self.name: str = name
 
     def __str__(self) -> str:
         """
@@ -134,6 +137,16 @@ class FinancialInstitution:
             FinancialProductEnum.CHECKING_ACCOUNT: "None",
         }
 
+    def get_name(self, product: FinancialProductEnum) -> str:
+        condition: list[str] = [
+            self._credit_card.description if self._credit_card is not None else "-",
+            self._check_account.name if self._check_account is not None else "-",
+        ]
+
+        csv_header_build = self._build_csv_header(condition)
+
+        return csv_header_build.get(product, "No value")
+
     def get_description(self, product: FinancialProductEnum) -> str:
 
         condition: list[str] = [
@@ -167,7 +180,7 @@ class FinancialInstitution:
 
         return csv_header_build.get(product, "No Value")
 
-    def _verify_lengths(self, condition: list, csv_header: dict) -> bool:
+    def _verify_lengths(self, condition: list, header: dict) -> bool:
         """
         Vérifie si la longueur de la liste condition est égale à celle du dictionnaire csv_header.
         Lève une exception si les longueurs sont différentes.
@@ -182,9 +195,9 @@ class FinancialInstitution:
         Raises:
             ValueError: Si les longueurs de condition et csv_header sont différentes.
         """
-        if len(condition) != len(csv_header):
+        if len(condition) != len(header):
             raise ValueError(
-                f"The lengths are different: condition = {len(condition)}, csv_header = {len(csv_header)}"
+                f"The lengths are different: condition = {len(condition)}, csv_header = {len(header)}"
             )
         return True
 

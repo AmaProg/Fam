@@ -24,7 +24,7 @@ from fam.database.users.models import (
     TransactionTable,
 )
 from fam.database.users.schemas import CreateTransactionBM
-from fam.enums import BankEnum, FinancialProductEnum
+from fam.enums import BankEnum, FinancialProductEnum, TransactionTypeEnum
 from fam.database.users import services as user_services
 from fam.system.file import File
 from fam.utils import fprint, get_user_dir_from_database_url
@@ -238,13 +238,13 @@ def classify_transaction_auto(
 def define_transaction_type(amount: float, product: FinancialProductEnum) -> str:
 
     negatif_amount: dict[FinancialProductEnum, str] = {
-        FinancialProductEnum.CREDIT_CARD: "credit",
-        FinancialProductEnum.CHECKING_ACCOUNT: "debit",
+        FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.CREDIT.value,
+        FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.CREDIT.value,
     }
 
     positif_amount: dict[FinancialProductEnum, str] = {
-        FinancialProductEnum.CREDIT_CARD: "debit",
-        FinancialProductEnum.CHECKING_ACCOUNT: "credit",
+        FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.DEBIT.value,
+        FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.DEBIT.value,
     }
 
     if amount > 0:
@@ -269,6 +269,13 @@ def classify_transactions(
     transactions: list[TransactionTable] = []
 
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
+
+    if bank == BankEnum.TANGERINE:
+        df[bank_ins.get_description(product)] = (
+            df[bank_ins.get_description(product)].astype(str)
+            + "_"
+            + df[bank_ins.get_name(product)].astype(str)
+        )
 
     df_csv = inverse_amount_sign_by_bank(
         df=df,

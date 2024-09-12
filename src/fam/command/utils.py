@@ -128,8 +128,18 @@ def inverse_amount_sign_by_bank(
 ) -> DataFrame:
 
     if (
-        bank == BankEnum.TANGERINE
-        and financial_product == FinancialProductEnum.CREDIT_CARD
+        (
+            bank == BankEnum.TANGERINE
+            and financial_product == FinancialProductEnum.CREDIT_CARD
+        )
+        or (
+            bank == BankEnum.BMO
+            and financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+        )
+        or (
+            bank == BankEnum.TANGERINE
+            and financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+        )
     ):
         amount_column: str = institution.get_transaction_amount(financial_product)
 

@@ -24,6 +24,9 @@ def create_table(db: Session, income_table: Table) -> tuple[Table, float]:
         transaction_type=TransactionTypeEnum.CREDIT,
     )
 
+    if len(db_transaction) == 0:
+        return income_table, 0
+
     df = utils.convert_db_transaction_to_dataframe(db_transaction)
 
     grouped_category, grouped_subcategory = group_transaction(df)
