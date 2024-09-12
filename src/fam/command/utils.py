@@ -95,7 +95,7 @@ def prompt_choice(choice: list[str], msg: str, transac_desc: str) -> int:
 
     prompt_int: int = typer.prompt(
         type=int,
-        text=f"{msg} for {transac_desc}",
+        text=f"{msg} for {transac_desc}".strip(),
     )
 
     return prompt_int
@@ -134,11 +134,17 @@ def inverse_amount_sign_by_bank(
         )
         or (
             bank == BankEnum.BMO
-            and financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+            and (
+                financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+                or financial_product == FinancialProductEnum.SAVE_ACCOUNT
+            )
         )
         or (
             bank == BankEnum.TANGERINE
-            and financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+            and (
+                financial_product == FinancialProductEnum.CHECKING_ACCOUNT
+                or financial_product == FinancialProductEnum.SAVE_ACCOUNT
+            )
         )
     ):
         amount_column: str = institution.get_transaction_amount(financial_product)

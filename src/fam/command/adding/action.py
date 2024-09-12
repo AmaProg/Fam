@@ -240,11 +240,13 @@ def define_transaction_type(amount: float, product: FinancialProductEnum) -> str
     negatif_amount: dict[FinancialProductEnum, str] = {
         FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.CREDIT.value,
         FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.CREDIT.value,
+        FinancialProductEnum.SAVE_ACCOUNT: TransactionTypeEnum.CREDIT.value,
     }
 
     positif_amount: dict[FinancialProductEnum, str] = {
         FinancialProductEnum.CREDIT_CARD: TransactionTypeEnum.DEBIT.value,
         FinancialProductEnum.CHECKING_ACCOUNT: TransactionTypeEnum.DEBIT.value,
+        FinancialProductEnum.SAVE_ACCOUNT: TransactionTypeEnum.DEBIT.value,
     }
 
     if amount > 0:
@@ -359,7 +361,7 @@ def create_new_transaction(
     bank: BankEnum,
 ) -> CreateTransactionBM:
     new_transaction: CreateTransactionBM = CreateTransactionBM(
-        description=desc,
+        description=desc.strip(),
         product=financial_product.value,
         amount=abs(transaction_amount),
         date=date_to_timestamp_by_bank(str(transaction_date), bank),

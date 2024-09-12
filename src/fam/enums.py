@@ -26,6 +26,7 @@ class InstitutionEnum(Enum):
 class FinancialProductEnum(Enum):
     CREDIT_CARD = "credit card"
     CHECKING_ACCOUNT = "check account"
+    SAVE_ACCOUNT = "save account"
 
 
 class AccountSectionEnum(Enum):

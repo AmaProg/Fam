@@ -1,4 +1,4 @@
-from fam.bank.base import CheckAccount, CreditCard, FinancialInstitution
+from fam.bank.base import CheckAccount, CreditCard, FinancialInstitution, SaveAccount
 
 credit_card: CreditCard = CreditCard(
     article_number="",
@@ -18,6 +18,15 @@ check_account: CheckAccount = CheckAccount(
     name="Description",
 )
 
+save_account: SaveAccount = SaveAccount(
+    amount="Montant",
+    description="Nom",
+    maxi_card="",
+    registration_date="Date",
+    transaction_type="Transaction",
+    name="Description",
+)
+
 
 class Tangerine(FinancialInstitution):
 
@@ -25,3 +34,4 @@ class Tangerine(FinancialInstitution):
         super().__init__()
         self._credit_card = credit_card
         self._check_account = check_account
+        self._save_account = save_account

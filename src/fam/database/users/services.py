@@ -180,7 +180,7 @@ def get_transaction_by_date_desc_bank(
 
     query: Select = select(TransactionTable).where(
         TransactionTable.date == date,
-        TransactionTable.description.ilike(desc.upper()),
+        TransactionTable.description.ilike(desc),
         TransactionTable.bank_name == bank,
     )
 

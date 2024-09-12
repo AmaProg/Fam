@@ -1,4 +1,4 @@
-from fam.bank.base import CheckAccount, CreditCard, FinancialInstitution
+from fam.bank.base import CheckAccount, CreditCard, FinancialInstitution, SaveAccount
 
 credit_card: CreditCard = CreditCard(
     article_number="Article no",
@@ -18,12 +18,22 @@ check_account: CheckAccount = CheckAccount(
     name="",
 )
 
+save_account: SaveAccount = SaveAccount(
+    maxi_card="Maxi-Carte",
+    transaction_type="Type de transaction",
+    registration_date="Date d'inscription",
+    amount=" Montant de la transaction",
+    description="Description",
+    name="",
+)
+
 
 class BMO(FinancialInstitution):
     def __init__(self) -> None:
         super().__init__()
         self._credit_card = credit_card
         self._check_account = check_account
+        self._save_account = save_account
 
 
 if __name__ == "__main__":
