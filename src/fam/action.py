@@ -15,8 +15,8 @@ from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
 from fam.database.users.models import AccountTable
 from fam.setup.db import init_account_table, init_category_table, init_classification_table
-from fam.system.file import File
-from fam.system.settings import settings
+from fam.os.file import File
+from fam.os.settings import settings
 from fam.utils import fprint
 from fam.cli import app_cli
 

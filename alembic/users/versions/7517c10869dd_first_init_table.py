@@ -1,8 +1,8 @@
-"""First init user database
+"""First init table
 
-Revision ID: f70fae8d01de
+Revision ID: 7517c10869dd
 Revises: 
-Create Date: 2024-08-29 23:15:12.935814
+Create Date: 2024-09-12 22:07:05.914587
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f70fae8d01de'
+revision: str = '7517c10869dd'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,10 +26,33 @@ def upgrade() -> None:
     sa.Column('description', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('account_nickname',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('bank_name', sa.String(), nullable=False),
+    sa.Column('account_type', sa.String(), nullable=False),
+    sa.Column('nickname', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('banking_institution',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
+    )
     op.create_table('classification',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('bank_account',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('account_type', sa.String(), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('amount', sa.Float(), nullable=False),
+    sa.Column('banking_institution_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['banking_institution_id'], ['banking_institution.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('category',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -49,16 +72,20 @@ def upgrade() -> None:
     )
     op.create_table('transaction',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('hash', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('product', sa.String(), nullable=False),
     sa.Column('amount', sa.Float(), nullable=True),
     sa.Column('date', sa.Integer(), nullable=True),
     sa.Column('bank_name', sa.String(), nullable=False),
     sa.Column('payment_proportion', sa.Float(), nullable=False),
+    sa.Column('transaction_type', sa.String(), nullable=True),
     sa.Column('subcategory_id', sa.Integer(), nullable=False),
     sa.Column('classification_id', sa.Integer(), nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
+    sa.Column('account_nickname_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['account_id'], ['account.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['account_nickname_id'], ['account_nickname.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['classification_id'], ['classification.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['subcategory_id'], ['subcategory.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -71,6 +98,9 @@ def downgrade() -> None:
     op.drop_table('transaction')
     op.drop_table('subcategory')
     op.drop_table('category')
+    op.drop_table('bank_account')
     op.drop_table('classification')
+    op.drop_table('banking_institution')
+    op.drop_table('account_nickname')
     op.drop_table('account')
     # ### end Alembic commands ###

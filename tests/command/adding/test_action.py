@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from fam import filename
-from fam.command.adding.action import (
+from fam.command.adding.process import (
     add_transaction_to_rule_file,
     classify_transaction_auto,
     get_transaction_from_rules_file,

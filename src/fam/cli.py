@@ -1,5 +1,5 @@
 import typer
-from fam.system import file, directory
+from fam.os import file, directory
 
 
 class AppCli:

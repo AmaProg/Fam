@@ -7,14 +7,13 @@ import typer
 
 from fam import auth
 from fam.command.adding import action
-from fam.command.utils import build_choice
+from fam.command.utils import build_choice, prompt_choice
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
-    SubCategoryTable,
-    ClassificationTable,
-    TransactionTable,
+    AccountNicknameTable,
 )
 from fam.enums import BankEnum, FinancialProductEnum
+from fam.os.file import File
 from fam.utils import fAborted, fprint
 from fam.database.users import service, services as user_services
 
@@ -59,9 +58,7 @@ def statement(
         database_url: str = auth.get_user_database_url()
 
         # Get csv file and convert to dataframe
-        csv_filename: str = (
-            action.open_dialog_file(bank) if filename == "" else filename
-        )
+        csv_filename: str = File.open_dialog(bank) if filename == "" else filename
 
         if csv_filename == "":
             raise typer.Abort()
@@ -70,7 +67,7 @@ def statement(
             fprint("Invalid file format: not a CSV.")
             raise typer.Abort()
 
-        df_csv: DataFrame | None = action.read_csv_by_bank(csv_filename, bank)
+        df_csv: DataFrame | None = File.read_csv_by_bank(csv_filename, bank)
 
         if df_csv is None:
             fprint(f"The {bank.value} bank csv file has been corrupted.")
@@ -78,43 +75,67 @@ def statement(
 
         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-            # Get all subcategory
-            subcategories: Sequence[SubCategoryTable] | None = (
-                user_services.get_all_subcategory(db)
+            db_nickname: Sequence[AccountNicknameTable] = (
+                service.account_nickname.get_account_nickname(db)
             )
+            nickname_dict, nickname_choice = build_choice(db_nickname, "nickname")
 
-            if subcategories is None or len(subcategories) == 0:
-                fprint("Please create a subcategory before adding a bank statement.")
-                raise typer.Abort()
-
-            classifies: Sequence[ClassificationTable] | None = (
-                user_services.get_all_classification(db)
-            )
-
-            if classifies is None:
-                fprint(
-                    "An error occurred while retrieving the transaction classification. Please recreate classifications again."
+            while True:
+                nickname_id: int = prompt_choice(
+                    nickname_choice, "Select the nickname", ""
                 )
-                raise typer.Abort()
+                nickname: AccountNicknameTable = nickname_dict.get(nickname_id, None)
 
-            # By category build category and classification choice
-            subcat_dict, subcat_choice = build_choice(subcategories, "categogy")
-            subcat_choice.append("0: skip")
-            class_dict, class_choice = build_choice(classifies)
+                if nickname is not None:
+                    break
 
-            transactions: list[TransactionTable] = action.classify_transactions(
-                df=df_csv,
-                subcat_choice=subcat_choice,
-                class_choice=class_choice,
-                subcat_dict=subcat_dict,
-                product=product,
-                bank=bank,
+            action.add_new_statement(
                 db=db,
                 database_url=database_url,
+                bank=bank,
+                df=df_csv,
+                product=product,
+                nickname_id=nickname.id,
             )
 
-            # Save all transactions that have been categorized in the database
-            user_services.create_transaction(db, transactions)
+            # # Get all subcategory
+            # subcategories: Sequence[SubCategoryTable] | None = (
+            #     user_services.get_all_subcategory(db)
+            # )
+
+            # if subcategories is None or len(subcategories) == 0:
+            #     fprint("Please create a subcategory before adding a bank statement.")
+            #     raise typer.Abort()
+
+            # classifies: Sequence[ClassificationTable] | None = (
+            #     user_services.get_all_classification(db)
+            # )
+
+            # if classifies is None:
+            #     fprint(
+            #         "An error occurred while retrieving the transaction classification. Please recreate classifications again."
+            #     )
+            #     raise typer.Abort()
+
+            # # By category build category and classification choice
+            # subcat_dict, subcat_choice = build_choice(subcategories, "categogy")
+            # subcat_choice.append("0: skip")
+            # class_dict, class_choice = build_choice(classifies)
+
+            # transactions: list[TransactionTable] = action.classify_transactions(
+            #     df=df_csv,
+            #     subcat_choice=subcat_choice,
+            #     class_choice=class_choice,
+            #     subcat_dict=subcat_dict,
+            #     product=product,
+            #     bank=bank,
+            #     db=db,
+            #     database_url=database_url,
+            #     filename=Path(csv_filename).name,
+            # )
+
+            # # Save all transactions that have been categorized in the database
+            # user_services.create_transaction(db, transactions)
 
         # print success transaction
         fprint(
@@ -142,7 +163,7 @@ def institution(
             help="",
             prompt="What is the name of the institution?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
 ):
     # Get user datbase url
     database_url: str = auth.get_user_database_url()

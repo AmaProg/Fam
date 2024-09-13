@@ -24,6 +24,7 @@ class CreateTransactionModel(BaseModel):
     subcategory_id: int
     classification_id: int
     account_id: int
+    account_nickname_id: int
 
 
 class ClassifySchemas(BaseModel):
@@ -52,3 +53,9 @@ class CreateBankAccount(BaseModel):
     name: str
     amount: float
     banking_institution_id: int
+
+
+class CreateAccountNicknameModel(BaseModel):
+    bank_name: str
+    account_type: str
+    nickname: str

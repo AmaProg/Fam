@@ -7,11 +7,7 @@ from rich import print
 import typer
 
 from fam import auth
-from fam.bank.constants import BANK_INST, BANK_INSTANCE_TYPE
-from fam.command.adding.action import (
-    classify_transaction_auto,
-    is_transaction_auto_classifiable,
-)
+from fam.command.creating import action
 from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
     AccountTable,
@@ -19,13 +15,11 @@ from fam.database.users.models import (
     CategoryTable,
     ClassificationTable,
     SubCategoryTable,
-    TransactionTable,
 )
 from fam.database.users.schemas import (
     CategorySchemas,
     ClassifySchemas,
     CreateSubCategory,
-    CreateTransactionModel,
 )
 from fam.enums import (
     AccountSectionEnum,
@@ -36,7 +30,7 @@ from fam.enums import (
     InstitutionEnum,
     TransactionTypeEnum,
 )
-from fam.utils import fAborted, fprint, fprint_panel, is_empty_list
+from fam.utils import fAborted, fprint, is_empty_list
 from fam.database.users import service, services as user_services
 from fam.command.utils import build_choice, date_to_timestamp, prompt_choice
 
@@ -60,7 +54,7 @@ def category(
             help="Category name.",
             prompt="What is the name of the category?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
     account_type: Annotated[
         AccountSectionEnum,
         typer.Option(
@@ -71,7 +65,7 @@ def category(
             show_choices=True,
             prompt="What is the category type?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
     desc: Annotated[
         str,
         typer.Option(
@@ -199,7 +193,7 @@ def transaction(
             help="Description of the transaction.",
             prompt="Please enter a description.",
         ),
-    ] = "",
+    ] = None,  # type: ignore
     product: Annotated[
         FinancialAccountEnum,
         typer.Option(
@@ -210,7 +204,7 @@ def transaction(
             show_choices=True,
             case_sensitive=True,
         ),
-    ] = None,
+    ] = None,  # type: ignore
     amount: Annotated[
         float,
         typer.Option(
@@ -219,7 +213,7 @@ def transaction(
             help="Transaction amount.",
             prompt="Please enter an amount.",
         ),
-    ] = 0,
+    ] = None,  # type: ignore
     date: Annotated[
         str,
         typer.Option(
@@ -227,7 +221,7 @@ def transaction(
             help="Transaction date.",
             prompt="Please enter the transaction date.",
         ),
-    ] = "",
+    ] = None,  # type: ignore
     institution: Annotated[
         InstitutionEnum,
         typer.Option(
@@ -238,7 +232,7 @@ def transaction(
             case_sensitive=False,
             show_choices=True,
         ),
-    ] = None,
+    ] = None,  # type: ignore
     pay_proportion: Annotated[
         float,
         typer.Option(
@@ -249,7 +243,7 @@ def transaction(
             max=100,
             min=1,
         ),
-    ] = None,
+    ] = None,  # type: ignore
     transaction_type: Annotated[
         TransactionTypeEnum,
         typer.Option(
@@ -259,101 +253,114 @@ def transaction(
             prompt="Please indicate the transaction type: Withdrawal (debit) Deposit (credit)",
             show_choices=True,
         ),
-    ] = None,
+    ] = None,  # type: ignore
 ):
     # Get the user database url
     database_url: str = auth.get_user_database_url()
 
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-        # Create a new transaction
-        new_transaction: CreateTransactionModel = CreateTransactionModel(
-            description=description.upper(),
-            product=product.value,
-            amount=abs(amount),
-            date=date_to_timestamp(date),
-            bank_name=institution.value,
-            payment_proportion=(pay_proportion / 100),
-            account_id=0,
-            classification_id=0,
-            subcategory_id=0,
-            transaction_type=transaction_type.value,
-        )
+        date_int: int = date_to_timestamp(date)
 
-        # check if the transaction is alredy in the database
-        db_transaction: TransactionTable = (
-            user_services.get_transaction_by_date_desc_bank(
-                db=db,
-                bank=institution.value,
-                date=new_transaction.date,
-                desc=new_transaction.description,
-            )
-        )
-
-        if db_transaction is not None:
-            fprint("The transaction already exists in the database.")
-            return
-
-        trans_table_list: list[TransactionTable] = []
-
-        # Display account name
-        account: AccountSectionEnum = typer.prompt(
-            type=AccountSectionEnum,
-            text=f"Please select an account ({[section.value for section in AccountSectionEnum]})",
-        )
-
-        db_account: AccountTable = user_services.get_account_id_by_name(
-            db=db, account_name=account.value
-        )
-
-        if db_account is None:
-            fprint_panel(
-                msg="No specified account name was found in the database.",
-                title="Account name error",
-                color="red",
-            )
-            raise typer.Abort()
-
-        # Display subcategory
-        db_subcat: Sequence[SubCategoryTable] = user_services.get_all_subcategory(db)
-
-        if len(db_subcat) == 0:
-            fprint(
-                "Please create one or more subcategories before using the [green]"
-                "create transaction"
-                "[/green] command."
-            )
-            raise typer.Abort()
-
-        subcat_dict, subcat_choice = build_choice(db_subcat, "categogy")
-
-        subcat_id: int = prompt_choice(
-            subcat_choice,
-            "Select the subcategory",
-            new_transaction.description,
-        )
-
-        # Display classification
-
-        db_class: Sequence[ClassificationTable] = user_services.get_all_classification(
+        action.create_new_transaction(
             db=db,
+            amount=amount,
+            bank=institution,
+            date_value=date_int,
+            desc=description,
+            pay_proportion=pay_proportion,
+            product=product,
+            transaction_type=transaction_type,
         )
 
-        class_dict, class_choice = build_choice(db_class)
+        # # Create a new transaction
+        # new_transaction: CreateTransactionModel = CreateTransactionModel(
+        #     description=description.upper(),
+        #     product=product.value,
+        #     amount=abs(amount),
+        #     date=date_to_timestamp(date),
+        #     bank_name=institution.value,
+        #     payment_proportion=(pay_proportion / 100),
+        #     account_id=0,
+        #     classification_id=0,
+        #     subcategory_id=0,
+        #     transaction_type=transaction_type.value,
+        # )
 
-        cls_id: int = prompt_choice(
-            class_choice,
-            "Select the classification",
-            new_transaction.description,
-        )
+        # # check if the transaction is alredy in the database
+        # db_transaction: TransactionTable = (
+        #     user_services.get_transaction_by_date_desc_bank(
+        #         db=db,
+        #         bank=institution.value,
+        #         date=new_transaction.date,
+        #         desc=new_transaction.description,
+        #     )
+        # )
 
-        new_transaction.account_id = db_account.id
-        new_transaction.subcategory_id = subcat_id
-        new_transaction.classification_id = cls_id
+        # if db_transaction is not None:
+        #     fprint("The transaction already exists in the database.")
+        #     return
 
-        # Add transaction to the database
-        trans_table_list.append(TransactionTable(**new_transaction.model_dump()))
-        user_services.create_transaction(db=db, transactions=trans_table_list)
+        # trans_table_list: list[TransactionTable] = []
+
+        # # Display account name
+        # account: AccountSectionEnum = typer.prompt(
+        #     type=AccountSectionEnum,
+        #     text=f"Please select an account ({[section.value for section in AccountSectionEnum]})",
+        # )
+
+        # db_account: AccountTable = user_services.get_account_id_by_name(
+        #     db=db, account_name=account.value
+        # )
+
+        # if db_account is None:
+        #     fprint_panel(
+        #         msg="No specified account name was found in the database.",
+        #         title="Account name error",
+        #         color="red",
+        #     )
+        #     raise typer.Abort()
+
+        # # Display subcategory
+        # db_subcat: Sequence[SubCategoryTable] = user_services.get_all_subcategory(db)
+
+        # if len(db_subcat) == 0:
+        #     fprint(
+        #         "Please create one or more subcategories before using the [green]"
+        #         "create transaction"
+        #         "[/green] command."
+        #     )
+        #     raise typer.Abort()
+
+        # subcat_dict, subcat_choice = build_choice(db_subcat, "categogy")
+
+        # subcat_id: int = prompt_choice(
+        #     subcat_choice,
+        #     "Select the subcategory",
+        #     new_transaction.description,
+        # )
+
+        # # Display classification
+
+        # db_class: Sequence[ClassificationTable] = user_services.get_all_classification(
+        #     db=db,
+        # )
+
+        # class_dict, class_choice = build_choice(db_class)
+
+        # cls_id: int = prompt_choice(
+        #     class_choice,
+        #     "Select the classification",
+        #     new_transaction.description,
+        # )
+
+        # new_transaction.account_id = db_account.id
+        # new_transaction.subcategory_id = subcat_id
+        # new_transaction.classification_id = cls_id
+
+        # # Add transaction to the database
+        # trans_table_list.append(TransactionTable(**new_transaction.model_dump()))
+        # user_services.create_transaction(db=db, transactions=trans_table_list)
 
     fprint("The transaction was added successfully.")
 
@@ -404,7 +411,7 @@ def bank_account(
             help="Type of bank account",
             prompt="What is the type of bank account?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
     name: Annotated[
         str,
         typer.Option(
@@ -413,7 +420,7 @@ def bank_account(
             help="Name or nickname of the bank account",
             prompt="what is the name or nickname of the bank account?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
     amount: Annotated[
         float,
         typer.Option(
@@ -421,7 +428,7 @@ def bank_account(
             help="Amount in your bank account as of today",
             prompt="How much is in your bank account as of today?",
         ),
-    ] = None,
+    ] = None,  # type: ignore
 ):
 
     # Retrieve the user's database URL
@@ -461,6 +468,32 @@ def bank_account(
             )
 
             fprint("The bank account was added successfully")
+
+    except Exception as e:
+        fprint(e)
+
+
+@app.command()
+def account_nickname(
+    bank: Annotated[BankEnum, typer.Option("--bank", "-b", help="", show_choices=True, prompt="Please indicate the name of the bank")] = None,  # type: ignore
+    account_type: Annotated[FinancialProductEnum, typer.Option("--account_type", "-a", help="", show_choices=True, prompt="Please indicate account type.")] = None,  # type: ignore
+    nickname: Annotated[str, typer.Option("--nickname", "-n", help="", prompt="Please indicate the nickname you want to give to your account")] = None,  # type: ignore
+):
+
+    database_url: str = auth.get_user_database_url()
+
+    try:
+
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+            action.create_new_account_nickname(
+                bank_name=bank.value,
+                account_type_name=account_type.value,
+                nickname=nickname,
+                db=db,
+            )
+
+        fprint("The nickname was successfully added.")
 
     except Exception as e:
         fprint(e)

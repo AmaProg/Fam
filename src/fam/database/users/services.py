@@ -77,6 +77,7 @@ def get_all_category(db: Session) -> Sequence[CategoryTable]:
     return all_cat
 
 
+@typing_extensions.deprecated("Use from fam.database.users.service")
 def get_all_subcategory(db: Session) -> Sequence[SubCategoryTable]:
 
     try:
@@ -90,6 +91,7 @@ def get_all_subcategory(db: Session) -> Sequence[SubCategoryTable]:
         return []
 
 
+@typing_extensions.deprecated("Use from fam.database.users.service")
 def get_account_id_by_name(db: Session, account_name) -> AccountTable | None:
 
     try:
@@ -115,6 +117,7 @@ def create_new_category(db: Session, cat: CategorySchemas) -> None:
         db.rollback()
 
 
+@typing_extensions.deprecated("Use from fam.database.users.service")
 def create_transaction(db: Session, transactions: list[TransactionTable]) -> None:
 
     try:
@@ -141,6 +144,7 @@ def create_new_classification(db: Session, classifies: list[ClassifySchemas]):
         db.rollback()
 
 
+@typing_extensions.deprecated("Use from fam.database.users.service")
 def get_all_classification(db: Session) -> Sequence[ClassificationTable]:
 
     try:
