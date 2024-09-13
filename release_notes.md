@@ -1,3 +1,11 @@
+# 1.6.8
+
+- Correction de l'affichage des choix en doublon.
+- Déplacement de la commande `subcategory` vers la commande `get subcategory`.
+- Amélioration de l'affichage du menu des choix.
+- Ajout de la sous-commande `account-nickname` à la commande `get`.
+
+
 # 1.5.7
 
 - **Ajout de la commande `account-nickname`** : Permet de créer des comptes avec des surnoms.

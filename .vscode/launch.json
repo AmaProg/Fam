@@ -125,6 +125,14 @@
       "program": "src/fam/main.py",
       "args": ["finance", "income-statement"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
+    },
+    {
+      "name": "Python Debugger: get subcategory",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/fam/main.py",
+      "args": ["get", "subcategory", "--list"],
+      "envFile": "${workspaceFolder}/.env-pythonpath"
     }
   ]
 }

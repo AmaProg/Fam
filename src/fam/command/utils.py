@@ -25,12 +25,17 @@ def build_choice(
         item_dict[item.id] = item
 
         if name == "categogy":
+            color: str = "yellow"
             item_choice.append(
-                f"{item.id}: {item.name} ({item.category.name})".capitalize()
+                f"{item.id}: {item.name} [{color}]({item.category.name})[/{color}]".capitalize()
             )
 
-        if name == "nickname":
-            item_choice.append(f"{item.id}: {item.nickname}".capitalize())
+        elif name == "nickname":
+            color: str = "yellow"
+            item_choice.append(
+                f"{item.id}: {item.nickname} [{color}]({item.bank_name})[/{color}] - {item.account_type}".capitalize()
+            )
+
         else:
             item_choice.append(f"{item.id}: {item.name}".capitalize())
 
@@ -45,13 +50,13 @@ def show_choice(choice: list[str], max_coloum: int = 3) -> None:
         choice[i * max_row : (i + 1) * max_row] for i in range(max_coloum)
     ]
 
-    space: int = longest_word(choice) + 2
+    space: int = longest_word(choice)
 
     for i in range(len(columns)):
         columns[i].extend([""] * (max_row - len(columns[i])))
 
     for row in zip(*columns):
-        print("\t".capitalize().join(f"{item:<{space}}".capitalize() for item in row))
+        print("\t".join(f"{item:<{space}}" for item in row))
 
 
 def date_to_timestamp_by_bank(date_str: str, bank: BankEnum) -> int:
