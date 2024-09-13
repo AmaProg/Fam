@@ -4,7 +4,7 @@ from pytest import fixture
 from tempfile import TemporaryDirectory
 import shutil
 
-from fam.database.users.schemas import CreateTransactionBM
+from fam.database.users.schemas import CreateTransactionModel
 
 
 @fixture
@@ -40,7 +40,7 @@ def transaction_yaml_file(
     transaction_base_model_bmo_bank,
 ) -> dict[str, list[dict[str, Any]]]:
 
-    old_trans: CreateTransactionBM = transaction_base_model_bmo_bank
+    old_trans: CreateTransactionModel = transaction_base_model_bmo_bank
 
     old_trans.description = "IGA Epicerie"
     old_trans.amount = 520.20

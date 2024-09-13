@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any
-from fam.database.users.schemas import CreateTransactionBM
+from fam.database.users.schemas import CreateTransactionModel
 from fam.enums import BankEnum, FinancialProductEnum
-from fam.system.file import File
+from fam.os.file import File
 from fam.utils import get_user_dir_from_database_url, normalize_string
 
 
@@ -11,6 +11,7 @@ def is_transaction_auto_classifiable(
     trans_desc: str,
     bank: BankEnum,
     product: FinancialProductEnum,
+    nickname_id: int,
 ) -> bool:
     """The function checks if the transaction was automatically classified.
 
@@ -29,11 +30,12 @@ def is_transaction_auto_classifiable(
 
     rules_list: list[dict[str, Any]] = content.get("rule", [])
 
-    trans_base_model: CreateTransactionBM | None = matches_transaction_rule(
+    trans_base_model: CreateTransactionModel | None = matches_transaction_rule(
         rules=rules_list,
         bank=bank.value,
         product=product.value,
         transaction_desc=trans_desc,
+        nickname_id=nickname_id,
     )
 
     return True if trans_base_model is not None else False
@@ -44,6 +46,7 @@ def matches_transaction_rule(
     product: str,
     bank: str,
     rules: list[dict[str, Any]],
+    nickname_id: int,
 ):
     """
     Checks if the details of the transaction match any of the specified rules.
@@ -66,12 +69,14 @@ def matches_transaction_rule(
         rule_desc = rule.get("description", "")
         rule_product = rule.get("product", "")
         rule_bank = rule.get("bank_name", "")
+        rule_nickname_id = rule.get("account_nickname_id", "")
 
         if (
             normalize_string(rule_desc) == normalized_trans_desc
             and normalize_string(rule_product) == normalized_product
             and normalize_string(rule_bank) == normalized_bank
+            and rule_nickname_id == nickname_id
         ):
-            return CreateTransactionBM(**rule)
+            return CreateTransactionModel(**rule)
 
     return None

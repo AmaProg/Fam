@@ -1,32 +1,38 @@
 from enum import Enum
 
+tangerine: str = "tangerine".lower()
+bmo: str = "bmo"
+credit_card: str = "credit card"
+check_account: str = "check account"
+save_account: str = "save account"
+
 
 class BankEnum(str, Enum):
-    BMO = "bmo"
-    TANGERINE = "tangerine"
+    BMO = bmo
+    TANGERINE = tangerine
 
 
 class InstitutionEnum(Enum):
-    BMO = "BMO"
-    TD = "TD"
-    RBC = "RBC"
-    SCOTIA = "Scotiabank"
-    CIBC = "CIBC"
-    NATIONAL = "National"
-    HSBC = "HSBC"
-    DESJARDINS = "Desjardins"
-    WEALTHSIMPLE = "Wealthsimple"
-    QUESTRADE = "Questrade"
-    PC = "PC Financial"
-    EQ = "EQ Bank"
-    MANULIFE = "Manulife"
-    TANGERINE = "Tangerine"
+    BMO = bmo
+    TD = "TD".lower()
+    RBC = "RBC".lower()
+    SCOTIA = "Scotiabank".lower()
+    CIBC = "CIBC".lower()
+    NATIONAL = "National".lower()
+    HSBC = "HSBC".lower()
+    DESJARDINS = "Desjardins".lower()
+    WEALTHSIMPLE = "Wealthsimple".lower()
+    QUESTRADE = "Questrade".lower()
+    PC = "PC Financial".lower()
+    EQ = "EQ Bank".lower()
+    MANULIFE = "Manulife".lower()
+    TANGERINE = tangerine
 
 
 class FinancialProductEnum(Enum):
-    CREDIT_CARD = "credit card"
-    CHECKING_ACCOUNT = "check account"
-    SAVE_ACCOUNT = "save account"
+    CREDIT_CARD = credit_card
+    CHECKING_ACCOUNT = check_account
+    SAVE_ACCOUNT = save_account
 
 
 class AccountSectionEnum(Enum):
@@ -42,25 +48,25 @@ class TransactionTypeEnum(Enum):
 
 
 class InvoiceTypeEnum(Enum):
-    CREDIT_CARD = "credit card"
+    CREDIT_CARD = credit_card
 
 
 class AccountTypeEnum(Enum):
-    CHECK_ACCOUNT = "check"
+    CHECK_ACCOUNT = check_account
     INVESTMENT_ACCOUNT = "investment"
-    SAVE_ACCOUNT = "save"
+    SAVE_ACCOUNT = save_account
 
 
 class FinancialAccountEnum(Enum):
-    SAVINGS_ACCOUNT = "Épargne"
-    CPG = "CPG"
-    CELI = "CELI"
-    CELIAPP = "CELIAPP"
-    REER = "REER"
-    REEE = "REEE"
-    BROKERAGE_ACCOUNT = "Compte de Courtage"
-    STOCK = "bourse"
-    REAL_ESTATE = "Immobilier"
-    PRECIOUS_METALS = "Métaux Précieux"
-    CD = "Certificat de Dépôt"
-    ESP = "Épargne-Salaire"
+    CHECK_ACCOUNT = check_account
+    SAVINGS_ACCOUNT = save_account
+    CPG = "CPG".lower()
+    CELI = "CELI".lower()
+    CELIAPP = "CELIAPP".lower()
+    REER = "REER".lower()
+    REEE = "REEE".lower()
+    BROKERAGE_ACCOUNT = "BROKERAGE_ACCOUNT".lower()
+    STOCK = "STOCK".lower()
+    REAL_ESTATE = "REAL_ESTATE".lower()
+    PRECIOUS_METALS = "PRECIOUS_METALS".lower()
+    CD = "Certificate of Deposit".lower()

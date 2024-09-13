@@ -16,7 +16,7 @@ from fam.utils import fAborted, fprint, fprint_panel, print_dev_mode
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import auth, filename, utils, action
-from fam.system.settings import settings
+from fam.os.settings import settings
 
 
 app = Typer(no_args_is_help=True)

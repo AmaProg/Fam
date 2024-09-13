@@ -3,7 +3,7 @@ from typing import Any
 
 import typer
 
-from fam.system.file import File
+from fam.os.file import File
 from fam.cli import app_cli
 from fam.utils import fprint
 

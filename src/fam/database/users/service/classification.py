@@ -20,3 +20,16 @@ def create_new_classification(db: Session, classifies: list[ClassifySchemas]):
     except SQLAlchemyError as e:
         db.rollback()
         raise
+
+
+def get_all_classification(db: Session) -> Sequence[ClassificationTable]:
+
+    try:
+        query: Select = select(ClassificationTable)
+
+        classify: Sequence[ClassificationTable] = db.scalars(query).all()
+
+        return classify
+    except:
+        db.rollback()
+        return []

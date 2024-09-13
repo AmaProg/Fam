@@ -1,0 +1,17 @@
+# 1. Cas Normaux (Cas de Base)
+# But : Tester des scénarios "heureux" où tout se passe comme prévu.
+
+# 2. Cas Limites (Edge Cases)
+# But : Tester les limites acceptables des données pour vérifier que le programme gère bien les valeurs extrêmes.
+
+# 3. Cas d’Erreurs (Error Cases)
+# But : Vérifier que le code gère bien les erreurs.
+
+# 4. Données Dupliquées
+# But : Vérifier que les transactions dupliquées sont correctement gérées.
+
+# 5. Cas Spéciaux (Special Cases)
+# But : Tester des cas qui ne sont pas fréquents mais qui peuvent arriver dans des situations spécifiques.
+
+# 6. Tests de Performances (Optional)
+# But : Vérifier que le code est performant même avec un grand nombre de transactions.

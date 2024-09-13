@@ -1,4 +1,6 @@
 from datetime import datetime
+import hashlib
+import json
 from typing import Any, Literal, Sequence
 from pandas import DataFrame
 from rich import print
@@ -12,7 +14,8 @@ from fam.enums import BankEnum, FinancialProductEnum
 
 
 def build_choice(
-    items: Sequence[T], name: Literal["classify", "categogy", "standard"] = "standard"
+    items: Sequence[T],
+    name: Literal["classify", "categogy", "standard", "nickname"] = "standard",
 ):
 
     item_dict: dict[int, T] = {}
@@ -22,9 +25,14 @@ def build_choice(
         item_dict[item.id] = item
 
         if name == "categogy":
-            item_choice.append(f"{item.id}: {item.name} ({item.category.name})")
+            item_choice.append(
+                f"{item.id}: {item.name} ({item.category.name})".capitalize()
+            )
+
+        if name == "nickname":
+            item_choice.append(f"{item.id}: {item.nickname}".capitalize())
         else:
-            item_choice.append(f"{item.id}: {item.name}")
+            item_choice.append(f"{item.id}: {item.name}".capitalize())
 
     return item_dict, item_choice
 
@@ -177,3 +185,26 @@ def convert_db_transaction_to_dataframe(
     df: DataFrame = pd.DataFrame(data=transaction_model_list)
 
     return df
+
+
+def generate_transaction_hash(
+    desc: str,
+    product_name: str,
+    amount_value: float,
+    date_value: int,
+    bank_name: str,
+    nickname_id: int,
+):
+
+    transaction: dict[str, Any] = {
+        "description": desc,
+        "product": product_name,
+        "amount": amount_value,
+        "date": date_value,
+        "bank_name": bank_name,
+        "nickname": nickname_id,
+    }
+
+    unique_string = json.dumps(transaction, sort_keys=True)
+
+    return hashlib.md5(unique_string.encode()).hexdigest()

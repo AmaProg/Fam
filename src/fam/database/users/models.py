@@ -11,6 +11,7 @@ T = TypeVar("T", bound="BaseTable")
 class BaseTable:
     id: int
     name: str
+    nickname: str
     category: "CategoryTable"
 
 
@@ -87,6 +88,7 @@ class TransactionTable(UserBase):
     __tablename__ = "transaction"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    hash: Mapped[str] = mapped_column(nullable=True)
     description: Mapped[str] = mapped_column(nullable=True)
     product: Mapped[str] = mapped_column(nullable=False)
     amount: Mapped[float] = mapped_column(nullable=True)
@@ -108,6 +110,9 @@ class TransactionTable(UserBase):
         ForeignKey("account.id", ondelete="CASCADE"),
         nullable=False,
     )
+    account_nickname_id: Mapped[int] = mapped_column(
+        ForeignKey("account_nickname.id", ondelete="CASCADE"), nullable=False
+    )
     # ----- End ForeignKey -----
 
     # ----- Relationship -----
@@ -122,6 +127,10 @@ class TransactionTable(UserBase):
     account: Mapped["AccountTable"] = relationship(
         "AccountTable",
         back_populates="transaction",
+    )
+
+    account_nickname: Mapped["AccountNicknameTable"] = relationship(
+        "AccountNicknameTable", back_populates="transaction"
     )
     # ----- End relationship -----
 
@@ -149,4 +158,17 @@ class BankAcountTable(UserBase):
     )
     banking_institution: Mapped["BankingInstitutionTable"] = relationship(
         "BankingInstitutionTable", back_populates="bank_account"
+    )
+
+
+class AccountNicknameTable(UserBase):
+    __tablename__ = "account_nickname"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    bank_name: Mapped[str] = mapped_column(nullable=False)
+    account_type: Mapped[str] = mapped_column(nullable=False)
+    nickname: Mapped[str] = mapped_column(nullable=False)
+
+    transaction: Mapped["TransactionTable"] = relationship(
+        "TransactionTable", back_populates="account_nickname"
     )

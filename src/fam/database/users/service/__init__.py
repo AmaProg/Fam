@@ -6,4 +6,5 @@ from fam.database.users.service import (
     category,
     subcategory,
     transaction,
+    account_nickname,
 )

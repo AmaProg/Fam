@@ -1,3 +1,9 @@
+# 1.5.7
+
+- **Ajout de la commande `account-nickname`** : Permet de créer des comptes avec des surnoms.
+- **Ajout de la commande `finance income-statement`** : Permet de créer un compte de résultats.
+- **Correction de l'auto-classification** : Résout le problème des doublons en utilisant la commande `account-nickname`.
+
 # 1.4.6
 
 - Précharge des données telles que les catégories et sous-catégories dans la base de données lors de l'inscription

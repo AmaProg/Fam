@@ -82,20 +82,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "src/fam/main.py",
-      "args": [
-        "create",
-        "transaction",
-        "-d",
-        "Paiment de loyer",
-        "-p",
-        "credit card",
-        "-a",
-        "650.25",
-        "--date",
-        "20240525",
-        "-b",
-        "bmo"
-      ],
+      "args": ["create", "transaction"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
     },
     {

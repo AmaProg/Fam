@@ -19,3 +19,16 @@ def create_subcategory(db: Session, subcategories: CreateSubCategory) -> None:
     except SQLAlchemyError as e:
         db.rollback()
         raise
+
+
+def get_subcategories(db: Session) -> Sequence[SubCategoryTable]:
+
+    try:
+        query: Select = select(SubCategoryTable)
+
+        all_subcat: Sequence[SubCategoryTable] = db.scalars(query).all()
+
+        return all_subcat
+    except:
+        db.rollback()
+        return []
