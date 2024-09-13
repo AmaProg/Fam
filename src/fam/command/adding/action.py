@@ -29,7 +29,7 @@ def add_new_statement(
         service.subcategory.get_subcategories(db)
     )
 
-    if not is_empty_list(db_subcategories) or db_subcategories is None:
+    if not db_subcategories:
         fprint("Please create a subcategory before adding a bank statement.")
         raise typer.Abort()
 
@@ -38,7 +38,7 @@ def add_new_statement(
         service.classification.get_all_classification(db)
     )
 
-    if not is_empty_list(db_classification) or db_classification is None:
+    if not db_classification:
         fprint(
             "An error occurred while retrieving the transaction classification. Please recreate classifications again."
         )

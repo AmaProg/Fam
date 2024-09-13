@@ -21,6 +21,7 @@ def transaction_base_model_bmo_bank() -> CreateTransactionModel:
         classification_id=1,
         subcategory_id=3,
         account_id=2,
+        account_nickname_id=1,
     )
 
     return trans

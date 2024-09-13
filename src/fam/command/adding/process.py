@@ -312,15 +312,16 @@ def classify_transactions(
 ) -> list[TransactionTable]:
 
     transactions: list[TransactionTable] = []
-
     bank_ins: kbank.BANK_INSTANCE_TYPE = kbank.BANK_INST[bank]
+    desc_head: str = bank_ins.get_description(product)
+    amount_head: str = bank_ins.get_transaction_amount(product)
+    date_head: str = bank_ins.get_transaction_date(product)
+    name_head: str = bank_ins.get_name(product)
 
     if bank == BankEnum.TANGERINE:
-        df[bank_ins.get_description(product)] = (
-            df[bank_ins.get_description(product)].astype(str)
-            + "_"
-            + df[bank_ins.get_name(product)].astype(str)
-        )
+        df[desc_head] = df[desc_head].fillna("")
+        df[name_head] = df[name_head].fillna("")
+        df[desc_head] = df[desc_head].astype(str) + "_" + df[name_head].astype(str)
 
     df_csv = inverse_amount_sign_by_bank(
         df=df,
@@ -328,10 +329,6 @@ def classify_transactions(
         financial_product=product,
         institution=bank_ins,
     )
-
-    desc_head: str = bank_ins.get_description(product)
-    amount_head: str = bank_ins.get_transaction_amount(product)
-    date_head: str = bank_ins.get_transaction_date(product)
 
     for _, trans in df_csv.iterrows():
 
