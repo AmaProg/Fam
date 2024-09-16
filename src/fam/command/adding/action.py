@@ -25,18 +25,13 @@ def add_new_statement(
 ) -> None:
 
     # Get all subcategories
-    db_subcategories: Sequence[SubCategoryTable] = (
-        service.subcategory.get_subcategories(db)
+    db_subcategories, db_classification = (
+        service.utils.get_subcategory_and_classification(db)
     )
 
     if not db_subcategories:
         fprint("Please create a subcategory before adding a bank statement.")
         raise typer.Abort()
-
-    # Get all classifications
-    db_classification: Sequence[ClassificationTable] = (
-        service.classification.get_all_classification(db)
-    )
 
     if not db_classification:
         fprint(
@@ -49,7 +44,7 @@ def add_new_statement(
     subcat_choice.append("0: skip")
     _, class_choice = build_choice(db_classification)
 
-    transaction_list: list[TransactionTable] = process.classify_transactions(
+    transaction_list: list[TransactionTable] = process.categorize_transaction(
         df=df,
         subcat_choice=subcat_choice,
         class_choice=class_choice,

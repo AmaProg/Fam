@@ -1,11 +1,12 @@
 from copy import copy
 from typing import Sequence
 from sqlalchemy.orm import Session
-from sqlalchemy import Select, select
+from sqlalchemy import Select, desc, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from fam.database.users.models import AccountTable, TransactionTable
 from fam.database.users.schemas import CreateTransactionModel
+from fam.enums import FinancialProductEnum
 
 
 def get_transaction_by_transaction_type_account(
@@ -69,3 +70,26 @@ def create_transaction(db: Session, transactions: list[TransactionTable]) -> Non
     except SQLAlchemyError as e:
         db.rollback()
         print(f"Commit failed: {e}")
+
+
+def get_transaction_by_desc_nickname_bank_product(
+    db: Session,
+    nickname_id: int,
+    bank_name: str,
+    product_financial: str,
+) -> TransactionTable:
+
+    try:
+        query: Select = select(TransactionTable).where(
+            TransactionTable.description == desc,
+            TransactionTable.account_nickname_id == nickname_id,
+            TransactionTable.bank_name == bank_name,
+            TransactionTable.product == product_financial,
+        )
+
+        db_transaction: TransactionTable = db.scalar(query)
+
+        return db_transaction
+    except:
+        db.rollback()
+        raise

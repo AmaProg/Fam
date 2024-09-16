@@ -9,7 +9,7 @@ import pandas as pd
 
 from fam.bank.constants import BANK_INSTANCE_TYPE
 from fam.database.users.models import T, TransactionTable
-from fam.database.users.schemas import TransactionBaseModel
+from fam.database.users.schemas import CreateTransactionModel, TransactionBaseModel
 from fam.enums import BankEnum, FinancialProductEnum
 
 
@@ -192,24 +192,17 @@ def convert_db_transaction_to_dataframe(
     return df
 
 
-def generate_transaction_hash(
-    desc: str,
-    product_name: str,
-    amount_value: float,
-    date_value: int,
-    bank_name: str,
-    nickname_id: int,
-):
+def generate_transaction_hash(transaction: CreateTransactionModel):
 
-    transaction: dict[str, Any] = {
-        "description": desc,
-        "product": product_name,
-        "amount": amount_value,
-        "date": date_value,
-        "bank_name": bank_name,
-        "nickname": nickname_id,
+    transaction_dict: dict[str, Any] = {
+        "description": transaction.description,
+        "product": transaction.product,
+        "amount": transaction.amount,
+        "date": transaction.date,
+        "bank_name": transaction.bank_name,
+        "nickname": transaction.account_nickname_id,
     }
 
-    unique_string = json.dumps(transaction, sort_keys=True)
+    unique_string = json.dumps(transaction_dict, sort_keys=True)
 
     return hashlib.md5(unique_string.encode()).hexdigest()

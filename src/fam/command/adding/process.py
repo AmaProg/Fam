@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import typer
 import pandas as pd
 
+from fam.bank.statement import BankStatement
 from fam.command.adding.validation import (
     is_transaction_auto_classifiable,
     matches_transaction_rule,
@@ -119,59 +120,59 @@ def add_transaction_to_rule_file(
 
 
 def classify_transaction_manually(
-    transaction: dict[str, Any],
+    transaction: CreateTransactionModel,
     subcat_choice: list[str],
     class_choice: list[str],
     subcat_dict: dict[int, SubCategoryTable],
-    financial_product: FinancialProductEnum,
-    bank: BankEnum,
-    institution: kbank.BANK_INSTANCE_TYPE,
-    db: Session,
     database_url: str,
-    hash_id: str,
-    nickname_id: int,
 ) -> CreateTransactionModel | None:
 
-    description, transaction_amount, transaction_date = extract_transaction_details(
-        financial_product=financial_product,
-        institution=institution,
-        transaction=transaction,
-    )
+    # description, transaction_amount, transaction_date = extract_transaction_details(
+    #     financial_product=financial_product,
+    #     institution=institution,
+    #     transaction=transaction,
+    # )
 
     # show the message to select a subcategory.
     subcat_id: int = prompt_choice(
         subcat_choice,
         "Select a category",
-        description,
+        transaction.description,
     )
 
-    if subcat_id == 0:
+    if not subcat_id:
         return None
 
     # show the message to select a classification.
     cls_id: int = prompt_choice(
         class_choice,
         "Select a category",
-        description,
+        transaction.description,
     )
 
-    sub_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
 
-    if sub_table is None:
+
+    subcategory_table: SubCategoryTable = subcat_dict.get(subcat_id, None)
+
+    if not subcategory_table:
         raise typer.Abort()
 
-    new_transaction: CreateTransactionModel = create_new_transaction(
-        transaction_hash=hash_id,
-        desc=description,
-        bank=bank,
-        financial_product=financial_product,
-        transaction_amount=transaction_amount,
-        transaction_date=transaction_date,
-        subcategory_id=subcat_id,
-        classification_id=cls_id,
-        account_id=sub_table.category.account_id,
-        nickname_id=nickname_id,
-    )
+    transaction.subcategory_id = subcat_id
+    transaction.classification_id = cls_id
+    transaction.account_id = subcategory_table.category.account_id
+
+    # new_transaction: CreateTransactionModel = create_new_transaction(
+    #     transaction_hash=hash_id,
+    #     desc=description,
+    #     bank=bank,
+    #     financial_product=financial_product,
+    #     transaction_amount=transaction_amount,
+    #     transaction_date=transaction_date,
+    #     subcategory_id=subcat_id,
+    #     classification_id=cls_id,
+    #     account_id=subcategory_table.category.account_id,
+    #     nickname_id=nickname_id,
+    # )
 
     # trans_table: TransactionTable | None = (
     #     user_services.get_transaction_by_date_desc_bank(
@@ -200,11 +201,11 @@ def classify_transaction_manually(
     ):
         add_transaction_to_rule_file(
             database_url=database_url,
-            trans_base_model=new_transaction,
+            trans_base_model=transaction,
         )
         fprint("The transaction has been successfully classified.")
 
-    return new_transaction
+    return transaction
 
 
 def get_transaction_from_rules_file(
@@ -235,44 +236,49 @@ def get_transaction_from_rules_file(
 
 
 def classify_transaction_auto(
-    transaction: dict[str, Any],
-    institution: kbank.BANK_INSTANCE_TYPE,
+    transaction: CreateTransactionModel,
     bank: BankEnum,
     database_url: str,
     financial_product: FinancialProductEnum,
-    hash_id: str,
     nickname_id: int,
 ) -> CreateTransactionModel | None:
 
-    description, transaction_amount, transaction_date = extract_transaction_details(
-        financial_product=financial_product,
-        institution=institution,
-        transaction=transaction,
-    )
+    # description, transaction_amount, transaction_date = extract_transaction_details(
+    #     financial_product=financial_product,
+    #     institution=institution,
+    #     transaction=transaction,
+    # )
 
     old_transaction: CreateTransactionModel | None = get_transaction_from_rules_file(
         product=financial_product,
         bank=bank,
         database_url=database_url,
-        trans_desc=description,
+        trans_desc=transaction.description,
         nickname_id=nickname_id,
     )
 
     if old_transaction is None:
         return None
 
-    transaction_classified = create_new_transaction(
-        transaction_hash=hash_id,
-        desc=old_transaction.description,
-        financial_product=financial_product,
-        transaction_amount=transaction_amount,
-        transaction_date=transaction_date,
-        bank=bank,
-        classification_id=old_transaction.classification_id,
-        subcategory_id=old_transaction.subcategory_id,
-        account_id=old_transaction.account_id,
-        nickname_id=nickname_id,
-    )
+    transaction.description = old_transaction.description
+    transaction.classification_id = old_transaction.classification_id
+    transaction.account_id = old_transaction.account_id
+    transaction.subcategory_id = old_transaction.subcategory_id
+
+    transaction_classified = transaction
+
+    # transaction_classified = create_new_transaction(
+    #     transaction_hash=hash_id,
+    #     desc=old_transaction.description,
+    #     financial_product=financial_product,
+    #     transaction_amount=transaction.amount,
+    #     transaction_date=transaction.date,
+    #     bank=bank,
+    #     classification_id=old_transaction.classification_id,
+    #     subcategory_id=old_transaction.subcategory_id,
+    #     account_id=old_transaction.account_id,
+    #     nickname_id=nickname_id,
+    # )
 
     return transaction_classified
 
@@ -299,6 +305,7 @@ def define_transaction_type(amount: float, product: FinancialProductEnum) -> str
     return transaction_type
 
 
+@typing_extensions.deprecated("Use categorize_transaction fucntion")
 def classify_transactions(
     df: DataFrame,
     subcat_choice: list[str],
@@ -400,12 +407,111 @@ def classify_transactions(
     return transactions
 
 
+def categorize_transaction(
+    bank: BankEnum,
+    df: DataFrame,
+    product: FinancialProductEnum,
+    nickname_id: int,
+    db: Session,
+    database_url: str,
+    subcat_choice: list[str],
+    class_choice: list[str],
+    subcat_dict: dict[int, SubCategoryTable],
+) -> list[TransactionTable]:
+
+    bank_statement = BankStatement()
+
+    transaction_list = bank_statement.standardize_statement(
+        bank_name=bank,
+        csv_data=df,
+        product=product,
+    )
+
+    transactions_table: list[TransactionTable] = []
+
+    for transaction in transaction_list:
+
+        transaction.bank_name = bank.value
+        transaction.account_nickname_id = nickname_id
+
+        # hash_id: str = generate_transaction_hash(
+        #     amount_value=transaction.amount,
+        #     bank_name=transaction.bank_name,
+        #     date_value=transaction.date,
+        #     desc=transaction.description,
+        #     nickname_id=transaction.account_nickname_id,
+        #     product_name=transaction.product,
+        # )
+        
+        hash_id: str = ""
+
+        transaction.hash = hash_id
+
+        # Get transaction by hash_id to check if already exist in the database
+
+        db_transaction: TransactionTable = service.transaction.get_transaction_by_hash(
+            db=db,
+            hash=hash_id,
+        )
+
+        if db_transaction is not None:
+            fprint(
+                f"The following description {transaction.description} already exists."
+            )
+            continue
+
+        result: bool = is_transaction_auto_classifiable(
+            bank=bank,
+            database_url=database_url,
+            nickname_id=nickname_id,
+            product=product,
+            trans_desc=transaction.description,
+        )
+
+        if db_transaction
+
+            new_transaction: CreateTransactionModel | None = classify_transaction_auto(
+                database_url=database_url,
+                bank=bank,
+                financial_product=product,
+                nickname_id=nickname_id,
+                transaction=transaction,
+            )
+
+            if new_transaction:
+                transactions_table.append(
+                    TransactionTable(**new_transaction.model_dump())
+                )
+                fprint(
+                    f"Transaction {transaction.description} has been automatically classified."
+                )
+                continue
+            else:
+                fprint("The transaction could not be automatically classified.")
+
+            continue
+
+        new_transaction: CreateTransactionModel | None = classify_transaction_manually(
+            class_choice=class_choice,
+            database_url=database_url,
+            transaction=transaction,
+            subcat_choice=subcat_choice,
+            subcat_dict=subcat_dict,
+        )
+        if new_transaction is None:
+            continue
+
+        transactions_table.append(TransactionTable(**new_transaction.model_dump()))
+
+    return transactions_table
+
+
 def create_new_transaction(
     transaction_hash: str,
     desc: str,
     financial_product: FinancialProductEnum,
     transaction_amount: float,
-    transaction_date: str,
+    transaction_date: int,
     classification_id: int,
     subcategory_id: int,
     account_id: int,
@@ -417,7 +523,7 @@ def create_new_transaction(
         description=desc.strip(),
         product=financial_product.value,
         amount=abs(transaction_amount),
-        date=date_to_timestamp_by_bank(str(transaction_date), bank),
+        date=transaction_date,
         bank_name=bank.value,
         classification_id=classification_id,
         subcategory_id=subcategory_id,

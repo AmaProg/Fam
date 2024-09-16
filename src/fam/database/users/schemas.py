@@ -21,6 +21,7 @@ class CreateTransactionModel(BaseModel):
     bank_name: str
     payment_proportion: float = 1.0
     transaction_type: str = "debit"
+    auto_categorize: bool = False
     subcategory_id: int
     classification_id: int
     account_id: int
