@@ -88,7 +88,7 @@ def categorize_transaction(
         )
 
         if new_transaction is None:
-            msg: str = f"The description cannot be categorize."
+            msg: str = f"The transaction has not been categorized."
             fprint(msg, color="red")
             continue
 
