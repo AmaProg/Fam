@@ -12,15 +12,36 @@ def bank_statement():
     return BankStatement()
 
 
-def test_standardize_bmo_statement(bank_statement: BankStatement):
+def test_bmo_credit_card_statement_standardization(
+    bank_statement: BankStatement,
+    bmo_credit_card_csv_data,
+):
     # Simuler les données d'un relevé BMO
-    csv_data = DataFrame(
-        {
-            "Date d'inscription": ["20230901", "20230902"],
-            "Description": ["Transaction A", "Transaction B"],
-            " Montant de la transaction": [100.0, -50.0],
-        }
+    bmo_credit_card_csv_data["Montant de la transaction"] = [100, -50, 36]
+    csv_data = DataFrame(data=bmo_credit_card_csv_data)
+
+    # Tester la standardisation pour BMO
+    transactions = bank_statement.standardize_statement(
+        bank_name=BankEnum.BMO,
+        csv_data=csv_data,
+        product=FinancialProductEnum.CREDIT_CARD,
     )
+
+    assert len(transactions) == 3
+    assert isinstance(transactions[0], CreateTransactionModel)
+    assert transactions[0].amount == 100.0
+    assert transactions[0].transaction_type == "debit"
+    assert transactions[1].amount == 50.0
+    assert transactions[1].transaction_type == "credit"
+
+
+def test_bmo_check_account_statement_standardization(
+    bank_statement: BankStatement,
+    bmo_check_acount_csv_data,
+):
+    # Simuler les données d'un relevé BMO
+    bmo_check_acount_csv_data[" Montant de la transaction"] = [100, -50, 36]
+    csv_data = DataFrame(data=bmo_check_acount_csv_data)
 
     # Tester la standardisation pour BMO
     transactions = bank_statement.standardize_statement(
@@ -29,31 +50,86 @@ def test_standardize_bmo_statement(bank_statement: BankStatement):
         product=FinancialProductEnum.CHECKING_ACCOUNT,
     )
 
-    assert len(transactions) == 2
+    assert len(transactions) == 3
     assert isinstance(transactions[0], CreateTransactionModel)
     assert transactions[0].amount == 100.0
-    assert transactions[1].amount == -50.0
+    assert transactions[0].transaction_type == "debit"
+    assert transactions[1].amount == 50.0
+    assert transactions[1].transaction_type == "credit"
 
 
-def test_standardize_tangerine_statement(bank_statement: BankStatement):
-    # Simuler les données d'un relevé Tangerine
-    csv_data = DataFrame(
-        {
-            "Date": ["09/01/2023", "09/02/2023"],
-            "Description": ["Transaction C", "Transaction D"],
-            "Nom": ["Store 1", "Store 2"],
-            "Montant": [200.0, -75.0],
-        }
+def test_tangerine_credit_card_statement_standardization(
+    bank_statement: BankStatement,
+    tangerine_credit_card_csv_data,
+):
+    # Simuler les données d'un relevé BMO
+    tangerine_credit_card_csv_data["Montant"] = [100, -50, 36]
+    csv_data = DataFrame(data=tangerine_credit_card_csv_data)
+
+    # Tester la standardisation pour BMO
+    transactions = bank_statement.standardize_statement(
+        bank_name=BankEnum.TANGERINE,
+        csv_data=csv_data,
+        product=FinancialProductEnum.CREDIT_CARD,
     )
 
-    # Tester la standardisation pour Tangerine
+    assert len(transactions) == 3
+    assert isinstance(transactions[0], CreateTransactionModel)
+    assert transactions[0].amount == 100.0
+    assert transactions[0].transaction_type == "credit"
+    assert transactions[1].amount == 50.0
+    assert transactions[1].transaction_type == "debit"
+
+
+def test_tangerine_check_account_statement_standardization(
+    bank_statement: BankStatement,
+    tangerine_check_account_csv_data,
+):
+    # Simuler les données d'un relevé BMO
+    tangerine_check_account_csv_data["Montant"] = [100, -50, 36]
+
+    csv_data = DataFrame(data=tangerine_check_account_csv_data)
+
+    # Tester la standardisation pour BMO
     transactions = bank_statement.standardize_statement(
         bank_name=BankEnum.TANGERINE,
         csv_data=csv_data,
         product=FinancialProductEnum.CHECKING_ACCOUNT,
     )
 
-    assert len(transactions) == 2
+    assert len(transactions) == 3
     assert isinstance(transactions[0], CreateTransactionModel)
-    assert transactions[0].amount == -200.0  # Négatif car inversé dans la logique
-    assert transactions[1].amount == 75.0
+    assert transactions[0].amount == 100.0
+    assert transactions[0].transaction_type == "credit"
+    assert transactions[1].amount == 50.0
+    assert transactions[1].transaction_type == "debit"
+
+
+def test_tangerine_check_account_statement_standardization_when_name_desc_merge(
+    bank_statement: BankStatement,
+    tangerine_check_account_csv_data,
+):
+    # Simuler les données d'un relevé BMO
+    tangerine_check_account_csv_data["Nom"] = [
+        "Transfert-1",
+        "Transfert-2",
+        "Transfert-3",
+    ]
+    tangerine_check_account_csv_data["Description"] = [
+        "Virement-1",
+        "Virement-1",
+        "Virement-1",
+    ]
+
+    csv_data = DataFrame(data=tangerine_check_account_csv_data)
+
+    # Tester la standardisation pour BMO
+    transactions = bank_statement.standardize_statement(
+        bank_name=BankEnum.TANGERINE,
+        csv_data=csv_data,
+        product=FinancialProductEnum.CHECKING_ACCOUNT,
+    )
+
+    assert len(transactions) == 3
+    assert isinstance(transactions[0], CreateTransactionModel)
+    assert transactions[0].description == "Transfert-1 Virement-1"

@@ -59,20 +59,21 @@ class BankStatement:
     ) -> list[CreateTransactionModel]:
 
         tangerine = Tangerine()
-        financial: list[FinancialProductEnum] = [
-            FinancialProductEnum.SAVE_ACCOUNT,
-            FinancialProductEnum.CHECKING_ACCOUNT,
-        ]
+        # financial: list[FinancialProductEnum] = [
+        #     FinancialProductEnum.SAVE_ACCOUNT,
+        #     FinancialProductEnum.CHECKING_ACCOUNT,
+
+        # ]
 
         date_head, desc_head, amount_head, name_head = self._get_header(
             tangerine, financial_product
         )
 
-        if financial_product in financial:
-            df[desc_head] = df[desc_head].fillna("")
-            df[name_head] = df[name_head].fillna("")
-            df[desc_head] = df[desc_head].astype(str) + " " + df[name_head].astype(str)
-            df[amount_head] = -df[amount_head]
+        # if financial_product in financial:
+        df[desc_head] = df[desc_head].fillna("")
+        df[name_head] = df[name_head].fillna("")
+        df[desc_head] = df[desc_head].astype(str) + " " + df[name_head].astype(str)
+        df[amount_head] = -df[amount_head]
 
         transactions_list: list[CreateTransactionModel] = (
             self._build_standard_statement(

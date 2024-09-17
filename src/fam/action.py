@@ -172,7 +172,7 @@ def init_user_workspace(id: UUID) -> str:
     # Create the user folder with unique ID.
     user_dir: Path = create_new_user_folder(id.hex)
     
-    create_file(user_dir)
+    # create_file(user_dir)
     
     create_folder(user_dir)
     

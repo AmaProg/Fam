@@ -26,4 +26,4 @@ def test_build_choice_for_category():
 
     item_dict, item_choice = build_choice(sub_table_list, "categogy")
 
-    assert "1: Essence (Transport)" in item_choice
+    assert "1: essence [yellow](Transport)[/yellow]".lower() in item_choice

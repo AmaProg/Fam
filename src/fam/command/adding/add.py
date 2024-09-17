@@ -91,7 +91,6 @@ def statement(
 
             action.add_new_statement(
                 db=db,
-                database_url=database_url,
                 bank=bank,
                 df=df_csv,
                 product=product,

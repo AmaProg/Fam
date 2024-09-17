@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from pytest import fixture
 from typer.testing import CliRunner
 from fam.database.users.models import TransactionTable
+from fam.enums import InstitutionEnum, TransactionTypeEnum
 from fam.main import app
 from tests.utils import input_value
 
@@ -18,7 +19,7 @@ COMMAND = ["create", "transaction"]
 
 
 @fixture
-def user_input(transaction_list_form_database) -> list[str]:
+def transaction_input(transaction_list_form_database) -> list[str]:
 
     db_transaction: TransactionTable = transaction_list_form_database[0]
 
@@ -27,10 +28,9 @@ def user_input(transaction_list_form_database) -> list[str]:
         db_transaction.product,
         "200.25",
         "20240525",
-        db_transaction.bank_name,
+        InstitutionEnum.CIBC.value,
         "50",
-        "debit",
-        "",
+        TransactionTypeEnum.DEBIT.value,
     ]
 
 
@@ -81,14 +81,14 @@ def init_mock(
 def test_create_transaction_when_transaction_exist_in_database(
     runner: CliRunner,
     transaction_list_form_database,
-    user_input,
+    transaction_input,
     init_mock,
 ):
     init_mock[GET_TRANSACTION_BY_DATE_DESC_BANK].return_value = (
         transaction_list_form_database[0]
     )
 
-    input_transaction: str = input_value(user_input)
+    input_transaction: str = input_value(transaction_input)
 
     result = runner.invoke(
         app,
@@ -106,7 +106,7 @@ def test_create_transaction_when_auto_classification_return_False(
     runner: CliRunner,
     init_mock,
     account_from_database,
-    user_input,
+    transaction_input,
 ):
 
     account_from_database.id = 2
@@ -121,12 +121,12 @@ def test_create_transaction_when_auto_classification_return_False(
     ) as mock_is_transaction_classifiable:
 
         mock_is_transaction_classifiable.return_value = False
-        user_input.extend(["expense", "1", "1"])
+        transaction_input.extend(["expense", "1", "1"])
 
         result = runner.invoke(
             app,
             COMMAND,
-            input=input_value(user_input),
+            input=input_value(transaction_input),
         )
 
         mock_is_transaction_classifiable.assert_called_once()
@@ -149,16 +149,16 @@ def test_create_transaction_when_auto_classification_return_False(
 def test_create_transaction_when_get_account_id_by_name_return_none(
     init_mock,
     runner: CliRunner,
-    user_input,
+    transaction_input,
     mock_is_transaction_auto_classifiable,
 ):
 
     init_mock[GET_ACCOUNT_ID_BY_NAME].return_value = None
     mock_is_transaction_auto_classifiable.return_value = False
 
-    user_input.append("expense")
+    transaction_input.append("expense")
 
-    result = runner.invoke(app, COMMAND, input=input_value(user_input))
+    result = runner.invoke(app, COMMAND, input=input_value(transaction_input))
 
     mock_is_transaction_auto_classifiable.assert_called_once()
     init_mock[GET_ACCOUNT_ID_BY_NAME].assert_called_once()
@@ -168,14 +168,17 @@ def test_create_transaction_when_get_account_id_by_name_return_none(
 
 
 def test_create_transaction_when_subcategory_return_empty_list(
-    init_mock, mock_is_transaction_auto_classifiable, runner: CliRunner, user_input
+    init_mock,
+    mock_is_transaction_auto_classifiable,
+    runner: CliRunner,
+    transaction_input,
 ):
     mock_is_transaction_auto_classifiable.return_value = False
     init_mock[GET_ALL_SUBCATEGORY].return_value = []
 
-    user_input.append("expense")
+    transaction_input.append("expense")
 
-    result = runner.invoke(app, COMMAND, input=input_value(user_input))
+    result = runner.invoke(app, COMMAND, input=input_value(transaction_input))
 
     mock_is_transaction_auto_classifiable.assert_called_once()
     init_mock[GET_ALL_SUBCATEGORY].assert_called_once()

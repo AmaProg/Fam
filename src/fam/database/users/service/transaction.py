@@ -77,11 +77,12 @@ def get_transaction_by_desc_nickname_bank_product(
     nickname_id: int,
     bank_name: str,
     product_financial: str,
+    desc: str,
 ) -> TransactionTable:
 
     try:
         query: Select = select(TransactionTable).where(
-            TransactionTable.description == desc,
+            TransactionTable.description.ilike(desc),
             TransactionTable.account_nickname_id == nickname_id,
             TransactionTable.bank_name == bank_name,
             TransactionTable.product == product_financial,

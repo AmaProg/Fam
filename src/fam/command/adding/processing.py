@@ -17,7 +17,6 @@ def categorize_transaction(
     product: FinancialProductEnum,
     nickname_id: int,
     db: Session,
-    database_url: str,
     subcat_choice: list[str],
     class_choice: list[str],
     subcat_dict: dict[int, SubCategoryTable],
@@ -55,7 +54,11 @@ def categorize_transaction(
             continue
 
         # Check if the transaction is auto-categorized
-        result, auto_transaction = is_auto_categorized(db=db, transaction=transaction)
+        result, auto_transaction = is_auto_categorized(
+            db=db,
+            transaction_model=transaction,
+            transaction_table_list=transaction_table_list,
+        )
 
         if result:
             transaction_categorize: CreateTransactionModel = (
@@ -65,14 +68,19 @@ def categorize_transaction(
                 )
             )
 
-            transaction_table_list.append(**transaction_categorize.model_dump())
+            transaction_table_list.append(
+                TransactionTable(**transaction_categorize.model_dump())
+            )
+            msg: str = (
+                f"Transaction {transaction_categorize.description} has been automatically classified."
+            )
+            fprint(msg)
             continue
 
         # If not auto-categorized, classify the transaction manually
         new_transaction: CreateTransactionModel | None = (
             categorize_transaction_manually(
                 class_choice=class_choice,
-                database_url=database_url,
                 subcat_choice=subcat_choice,
                 subcat_dict=subcat_dict,
                 transaction_model=transaction,
@@ -84,7 +92,7 @@ def categorize_transaction(
             fprint(msg, color="red")
             continue
 
-        transaction_table_list.append(**new_transaction.model_dump())
+        transaction_table_list.append(TransactionTable(**new_transaction.model_dump()))
 
     # Save the data to the database
     return transaction_table_list
@@ -98,6 +106,9 @@ def categorize_transaction_automatically(
     transaction_model.account_id = auto_transaction.account_id
     transaction_model.classification_id = auto_transaction.classification_id
     transaction_model.subcategory_id = auto_transaction.subcategory_id
+    transaction_model.auto_categorize = auto_transaction.auto_categorize
+    transaction_model.payment_proportion = auto_transaction.payment_proportion
+    transaction_model.transaction_type = auto_transaction.transaction_type
 
     return transaction_model
 
@@ -107,7 +118,6 @@ def categorize_transaction_manually(
     subcat_choice: list[str],
     class_choice: list[str],
     subcat_dict: dict[int, SubCategoryTable],
-    database_url: str,
 ) -> CreateTransactionModel | None:
 
     subcat_id: int = prompt_choice(
@@ -150,7 +160,8 @@ def categorize_transaction_manually(
     transaction_model.payment_proportion = pay_ratio / 100
 
     if typer.confirm(
-        "Do you want the next time you see the transaction to be filed automatically?"
+        "Do you want the next time you see the transaction to be filed automatically?",
+        err=True,
     ):
         transaction_model.auto_categorize = True
         fprint("The transaction has been successfully classified.")

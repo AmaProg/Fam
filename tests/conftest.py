@@ -24,6 +24,11 @@ from tests.fixtures.mock_fixture import (
     mock_check_for_update,
     mock_build_choice,
     mock_prompt_choice,
+    mock_get_subcategory_and_classification,
+    mock_categorize_transaction,
+    mock_get_transaction_by_hash,
+    mock_get_transaction_by_desc_nickname_bank_product,
+    mock_get_account_nickname,
 )
 from tests.fixtures.schemas_fixture import transaction_base_model_bmo_bank
 from tests.fixtures.data_fixture import (
@@ -35,6 +40,13 @@ from tests.fixtures.data_fixture import (
     database_url,
     user_login,
     user_signup,
+    db_transaction,
+    bmo_credit_card_standardize_statement_list,
+    bmo_credit_card_csv_data,
+    bmo_check_acount_csv_data,
+    tangerine_credit_card_csv_data,
+    tangerine_check_account_csv_data,
+    tangerine_save_account_csv_data,
 )
 from tests.fixtures.typer import runner
 from tests.fixtures.input_fixture import user_login_input, user_signup_input

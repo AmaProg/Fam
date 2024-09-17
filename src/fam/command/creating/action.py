@@ -52,12 +52,11 @@ def create_new_transaction(
 ) -> None:
 
     # Retrieve and display the account nickname to the user
-
     db_account_nickname: Sequence[AccountNicknameTable] = (
         service.account_nickname.get_account_nickname(db)
     )
 
-    if len(db_account_nickname) == 0:
+    if not db_account_nickname:
         fprint(
             "Please create an account nickname with the create account-nickname command."
         )
@@ -74,14 +73,6 @@ def create_new_transaction(
             break
 
     # Check if the transaction already exists in the database
-    hash_id: str = utils.generate_transaction_hash(
-        desc=desc,
-        amount_value=amount,
-        bank_name=bank.value,
-        date_value=date_value,
-        nickname_id=nickname_id,
-        product_name=product.value,
-    )
 
     transaction_model: CreateTransactionModel = CreateTransactionModel(
         account_id=0,
@@ -90,13 +81,19 @@ def create_new_transaction(
         classification_id=0,
         date=date_value,
         description=desc,
-        hash=hash_id,
+        hash="",
         payment_proportion=(pay_proportion / 100),
         product=product.value,
         subcategory_id=0,
         transaction_type=transaction_type.value,
         account_nickname_id=nickname.id,
     )
+
+    hash_id: str = utils.generate_transaction_hash(
+        transaction=transaction_model,
+    )
+
+    transaction_model.hash = hash_id
 
     db_transaction: TransactionTable = service.transaction.get_transaction_by_hash(
         db=db,
@@ -126,12 +123,16 @@ def create_new_transaction(
         )
         raise typer.Abort()
 
-    # Show the subcategory
-    db_subcategory: Sequence[SubCategoryTable] = service.subcategory.get_subcategories(
-        db
+    db_subcategory, db_classification = (
+        service.utils.get_subcategory_and_classification(db)
     )
 
-    if not is_empty_list(db_subcategory):
+    # # Show the subcategory
+    # db_subcategory: Sequence[SubCategoryTable] = service.subcategory.get_subcategories(
+    #     db
+    # )
+
+    if not db_subcategory:
         fprint(
             "Please create one or more subcategories before using the [green]"
             "create transaction"
@@ -147,10 +148,10 @@ def create_new_transaction(
         transaction_model.description,
     )
 
-    # Show the classification
-    db_classification: Sequence[ClassificationTable] = (
-        service.classification.get_all_classification(db)
-    )
+    # # Show the classification
+    # db_classification: Sequence[ClassificationTable] = (
+    #     service.classification.get_all_classification(db)
+    # )
 
     _, class_choice = build_choice(db_classification)
 
