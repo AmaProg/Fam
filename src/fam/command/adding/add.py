@@ -91,53 +91,12 @@ def statement(
 
             action.add_new_statement(
                 db=db,
-                database_url=database_url,
                 bank=bank,
                 df=df_csv,
                 product=product,
                 nickname_id=nickname.id,
             )
 
-            # # Get all subcategory
-            # subcategories: Sequence[SubCategoryTable] | None = (
-            #     user_services.get_all_subcategory(db)
-            # )
-
-            # if subcategories is None or len(subcategories) == 0:
-            #     fprint("Please create a subcategory before adding a bank statement.")
-            #     raise typer.Abort()
-
-            # classifies: Sequence[ClassificationTable] | None = (
-            #     user_services.get_all_classification(db)
-            # )
-
-            # if classifies is None:
-            #     fprint(
-            #         "An error occurred while retrieving the transaction classification. Please recreate classifications again."
-            #     )
-            #     raise typer.Abort()
-
-            # # By category build category and classification choice
-            # subcat_dict, subcat_choice = build_choice(subcategories, "categogy")
-            # subcat_choice.append("0: skip")
-            # class_dict, class_choice = build_choice(classifies)
-
-            # transactions: list[TransactionTable] = action.classify_transactions(
-            #     df=df_csv,
-            #     subcat_choice=subcat_choice,
-            #     class_choice=class_choice,
-            #     subcat_dict=subcat_dict,
-            #     product=product,
-            #     bank=bank,
-            #     db=db,
-            #     database_url=database_url,
-            #     filename=Path(csv_filename).name,
-            # )
-
-            # # Save all transactions that have been categorized in the database
-            # user_services.create_transaction(db, transactions)
-
-        # print success transaction
         fprint(
             "Assignment of categories to the transaction was successfully completed."
         )

@@ -104,3 +104,48 @@ def mock_build_choice():
 def mock_prompt_choice():
     with patch("fam.command.utils.prompt_choice", autospec=True) as mock:
         yield mock
+
+
+@fixture
+def mock_get_subcategory_and_classification():
+    with patch(
+        "fam.database.users.service.utils.get_subcategory_and_classification",
+        autospec=True,
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_transaction_by_hash():
+    with patch(
+        "fam.database.users.service.transaction.get_transaction_by_hash",
+        autospec=True,
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_transaction_by_desc_nickname_bank_product():
+    with patch(
+        "fam.database.users.service.transaction.get_transaction_by_desc_nickname_bank_product",
+        autospec=True,
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_get_account_nickname():
+    with patch(
+        "fam.database.users.service.account_nickname.get_account_nickname",
+        autospec=True,
+    ) as mock:
+        yield mock
+
+
+@fixture
+def mock_categorize_transaction():
+    with patch(
+        "fam.command.adding.processing.categorize_transaction",
+        autospec=True,
+    ) as mock:
+        yield mock

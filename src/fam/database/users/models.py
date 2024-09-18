@@ -98,6 +98,7 @@ class TransactionTable(UserBase):
     bank_name: Mapped[str] = mapped_column(nullable=False)
     payment_proportion: Mapped[float] = mapped_column(nullable=False)
     transaction_type: Mapped[str] = mapped_column(nullable=True, default="debit")
+    auto_categorize: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     # ----- ForeignKey -----
     subcategory_id: Mapped[int] = mapped_column(

@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import StringIO
-from typing import Sequence
+from typing import Any, Sequence
 
 import pandas as pd
 from pytest import fixture
@@ -78,6 +78,7 @@ def transaction_list_form_database():
             classification_id=personel_class,
             subcategory_id=subcategory_list[idx],
             hash=generate_transaction_hash({}),
+            account_nickname_id=1,
         )
 
         trans_table: TransactionTable = TransactionTable(**new_transaction.model_dump())
@@ -156,3 +157,130 @@ def user_login():
 @fixture
 def user_signup(user_login):
     return user_login
+
+
+@fixture
+def db_transaction() -> TransactionTable:
+
+    transaction: CreateTransactionModel = CreateTransactionModel(
+        account_id=0,
+        account_nickname_id=0,
+        amount=0,
+        bank_name="",
+        classification_id=0,
+        date=0,
+        description="",
+        hash="",
+        product="",
+        subcategory_id=0,
+    )
+
+    return TransactionTable(**transaction.model_dump())
+
+
+@fixture
+def bmo_credit_card_csv_data():
+    return {
+        "Article no": [1, 2, 3],
+        "Carte no": [123456789, 123456789, 123456789],
+        "Date de la transaction": [20240703, 20240705, 20240709],
+        "Date de l'inscription au relevé": [20240704, 20240708, 20240711],
+        "Montant de la transaction": [-680.04, 13.37, 55.19],
+        "Description": [
+            "TRSF FROM/DE ACCT/CPT 0000022199826893",
+            "MARCHE ST JEAN BAPTIST POINTE AUX TRQC",
+            "COSTA SPORTS POINTE-AUX-TRQC",
+        ],
+    }
+
+
+@fixture
+def bmo_check_acount_csv_data():
+    return {
+        "Maxi-Carte": [123456789, 123456789, 123456789],
+        "Type de transaction": ["DEBIT", "CREDIT", "CREDIT"],
+        "Date d'inscription": [20240703, 20240705, 20240709],
+        " Montant de la transaction": [-680.04, 13.37, 55.19],
+        "Description": [
+            "TRSF FROM/DE ACCT/CPT 0000022199826893",
+            "MARCHE ST JEAN BAPTIST POINTE AUX TRQC",
+            "COSTA SPORTS POINTE-AUX-TRQC",
+        ],
+    }
+
+
+@fixture
+def tangerine_credit_card_csv_data():
+    return {
+        "Date de l'opération": ["8/2/2024", "8/3/2024", "8/12/2024"],
+        "Transaction": ["DEBIT", "CREDIT", "CREDIT"],
+        "Nom": ["Virement 1", "Virement 2", "Virement 3"],
+        "Description": [
+            "TRSF FROM/DE ACCT/CPT 0000022199826893",
+            "MARCHE ST JEAN BAPTIST POINTE AUX TRQC",
+            "COSTA SPORTS POINTE-AUX-TRQC",
+        ],
+        "Montant": [-680.04, 13.37, 55.19],
+    }
+
+
+@fixture
+def tangerine_check_account_csv_data():
+    return {
+        "Date": ["8/2/2024", "8/3/2024", "8/12/2024"],
+        "Transaction": ["DEBIT", "CREDIT", "CREDIT"],
+        "Nom": ["Virement 1", "Virement 2", "Virement 3"],
+        "Description": [
+            "TRSF FROM/DE ACCT/CPT 0000022199826893",
+            "MARCHE ST JEAN BAPTIST POINTE AUX TRQC",
+            "COSTA SPORTS POINTE-AUX-TRQC",
+        ],
+        "Montant": [-680.04, 13.37, 55.19],
+    }
+
+
+@fixture
+def tangerine_save_account_csv_data():
+    return {
+        "Article no": [1, 2, 3],
+        "Carte no": [123456789, 123456789, 123456789],
+        "Date de la transaction": [20240703, 20240705, 20240709],
+        "Date de l'inscription au relevé": [20240704, 20240708, 20240711],
+        "Montant de la transaction": [-680.04, 13.37, 55.19],
+        "Description": [
+            "TRSF FROM/DE ACCT/CPT 0000022199826893",
+            "MARCHE ST JEAN BAPTIST POINTE AUX TRQC",
+            "COSTA SPORTS POINTE-AUX-TRQC",
+        ],
+    }
+
+
+@fixture
+def bmo_credit_card_standardize_statement_list(bmo_credit_card_csv_data):
+
+    df: pd.DataFrame = pd.DataFrame(data=bmo_credit_card_csv_data)
+
+    transaction_model_list: list[CreateTransactionModel] = []
+
+    for _, data in df.iterrows():
+
+        date_obj = datetime.strptime(str(data["Date de la transaction"]), "%Y%m%d")
+
+        date_int: int = int(date_obj.timestamp())
+
+        transaction_model_list.append(
+            CreateTransactionModel(
+                description=data["Description"],
+                account_id=0,
+                account_nickname_id=0,
+                amount=data["Montant de la transaction"],
+                bank_name=BankEnum.BMO.value,
+                classification_id=0,
+                date=date_int,
+                hash="",
+                product=FinancialProductEnum.CREDIT_CARD.value,
+                subcategory_id=0,
+            )
+        )
+
+    return transaction_model_list
