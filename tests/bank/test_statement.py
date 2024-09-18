@@ -133,3 +133,33 @@ def test_tangerine_check_account_statement_standardization_when_name_desc_merge(
     assert len(transactions) == 3
     assert isinstance(transactions[0], CreateTransactionModel)
     assert transactions[0].description == "Transfert-1 Virement-1"
+
+
+def test_standardize_tangerine_credit_card_statement_without_merge_name_with_description(
+    bank_statement: BankStatement,
+    tangerine_credit_card_csv_data,
+):
+    # Simuler les données d'un relevé BMO
+    tangerine_credit_card_csv_data["Nom"] = [
+        "Transfert-1",
+        "Transfert-2",
+        "Transfert-3",
+    ]
+    tangerine_credit_card_csv_data["Description"] = [
+        "Virement-1",
+        "Virement-1",
+        "Virement-1",
+    ]
+
+    csv_data = DataFrame(data=tangerine_credit_card_csv_data)
+
+    # Tester la standardisation pour BMO
+    transactions = bank_statement.standardize_statement(
+        bank_name=BankEnum.TANGERINE,
+        csv_data=csv_data,
+        product=FinancialProductEnum.CREDIT_CARD,
+    )
+
+    assert len(transactions) == 3
+    assert isinstance(transactions[0], CreateTransactionModel)
+    assert transactions[0].description == "Transfert-1"
