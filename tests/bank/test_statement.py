@@ -63,7 +63,7 @@ def test_tangerine_credit_card_statement_standardization(
     tangerine_credit_card_csv_data,
 ):
     # Simuler les données d'un relevé BMO
-    tangerine_credit_card_csv_data["Montant"] = [100, -50, 36]
+    tangerine_credit_card_csv_data["Montant"] = [17.24, -17.24, 36]
     csv_data = DataFrame(data=tangerine_credit_card_csv_data)
 
     # Tester la standardisation pour BMO
@@ -75,9 +75,9 @@ def test_tangerine_credit_card_statement_standardization(
 
     assert len(transactions) == 3
     assert isinstance(transactions[0], CreateTransactionModel)
-    assert transactions[0].amount == 100.0
+    assert transactions[0].amount == 17.24
     assert transactions[0].transaction_type == "credit"
-    assert transactions[1].amount == 50.0
+    assert transactions[1].amount == 17.24
     assert transactions[1].transaction_type == "debit"
 
 

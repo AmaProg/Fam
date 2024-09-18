@@ -13,7 +13,7 @@ from fam.command.adding.processing import (
 )
 from fam.database.users.models import TransactionTable
 from fam.database.users.schemas import CreateTransactionModel
-from fam.enums import BankEnum, FinancialProductEnum
+from fam.enums import BankEnum, FinancialProductEnum, TransactionTypeEnum
 
 
 @fixture
@@ -218,7 +218,7 @@ def test_categorize_transaction_when_transaction_categorize_manually(
 
     output_cleaned = captured.out.replace("\n", "")
 
-    exception_msg = f"Fam: The description cannot be categorize."
+    exception_msg = f"Fam: The transaction has not been categorized."
 
     # Vérifie si le message attendu est dans la sortie
     assert exception_msg in output_cleaned
@@ -260,6 +260,31 @@ def test_categorize_transaction_automatically_when_return_transaction_categorize
 
     assert transaction_categorize.account_id == 5
     assert transaction_categorize.classification_id != 5
+
+
+def test_categorize_transaction_automatically_with_same_value_opposite_sign(
+    db_transaction,
+    bmo_credit_card_standardize_statement_list,
+):
+
+    # define auto transaction
+    db_transaction.amount = 100
+    db_transaction.transaction_type = TransactionTypeEnum.CREDIT.value
+    db_transaction.description = "Marche IGA"
+
+    # define the future transaction that will be automatically categorized
+    model = bmo_credit_card_standardize_statement_list[0]
+    model.description = "Marche IGA"
+    model.amount = 100
+    model.transaction_type = TransactionTypeEnum.DEBIT.value
+
+    transaction_categorize = categorize_transaction_automatically(
+        auto_transaction=db_transaction,
+        transaction_model=model,
+    )
+
+    assert transaction_categorize.transaction_type != db_transaction.transaction_type
+    assert transaction_categorize.description == db_transaction.description
 
 
 # from pathlib import Path

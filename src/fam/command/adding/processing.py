@@ -103,12 +103,13 @@ def categorize_transaction_automatically(
     auto_transaction: TransactionTable,
 ) -> CreateTransactionModel:
 
+    # during the automatic categorization the date, amount, transaction
+    # type, nickname id, bank name, pay ratio and de description cannot be changed
+
     transaction_model.account_id = auto_transaction.account_id
     transaction_model.classification_id = auto_transaction.classification_id
     transaction_model.subcategory_id = auto_transaction.subcategory_id
     transaction_model.auto_categorize = auto_transaction.auto_categorize
-    transaction_model.payment_proportion = auto_transaction.payment_proportion
-    transaction_model.transaction_type = auto_transaction.transaction_type
 
     return transaction_model
 

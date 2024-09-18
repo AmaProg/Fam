@@ -1,12 +1,10 @@
-from copy import copy
 from typing import Sequence
 from sqlalchemy.orm import Session
-from sqlalchemy import Select, desc, select
+from sqlalchemy import Select, select, Delete, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from fam.database.users.models import AccountTable, TransactionTable
 from fam.database.users.schemas import CreateTransactionModel
-from fam.enums import FinancialProductEnum
 
 
 def get_transaction_by_transaction_type_account(
@@ -91,6 +89,18 @@ def get_transaction_by_desc_nickname_bank_product(
         db_transaction: TransactionTable = db.scalar(query)
 
         return db_transaction
+    except:
+        db.rollback()
+        raise
+
+
+def delete_all_transaction(db: Session) -> None:
+
+    try:
+        query: Delete = delete(TransactionTable)
+
+        db.execute(query)
+        db.commit()
     except:
         db.rollback()
         raise

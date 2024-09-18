@@ -1,3 +1,9 @@
+# Version 1.7.10
+
+- Ajout de la sous-commande `transaction` dans la commande `delete`. Cette sous-commande permet de supprimer toutes les transactions présentes dans la base de données.
+- Correction du problème lié au type de transaction lorsque celui-ci est automatiquement catégorisé.
+
+
 
 # Version 1.6.9
 - Suppression du fichier `transaction_rule` devenu obsolète.
