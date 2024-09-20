@@ -28,6 +28,11 @@ def create_table(db: Session, expense_table: Table) -> tuple[Table, float]:
 
     df = utils.convert_db_transaction_to_dataframe(db_transaction)
 
+    df = df[df["category_name"] != "Epargne"]
+    df = df[df["category_name"] != "Opérations Internes"]
+
+    print(df)
+
     grouped_category, grouped_subcategory = group_transaction(df)
 
     expense_table.add_row("Expenses")
