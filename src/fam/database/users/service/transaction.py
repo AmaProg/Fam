@@ -1,3 +1,4 @@
+from msilib import sequence
 from typing import Sequence
 from sqlalchemy.orm import Session
 from sqlalchemy import Select, select, Delete, delete
@@ -92,6 +93,21 @@ def get_transaction_by_desc_nickname_bank_product(
     except:
         db.rollback()
         raise
+
+
+def get_transactions(db: Session) -> Sequence[TransactionTable]:
+
+    try:
+
+        query: Select = select(TransactionTable)
+
+        db_transaction: Sequence[TransactionTable] = db.scalars(query).all()
+
+        return db_transaction
+
+    except:
+        db.rollback()
+        return []
 
 
 def delete_all_transaction(db: Session) -> None:

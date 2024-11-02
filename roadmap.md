@@ -1,5 +1,10 @@
 Nouvelle Fonctionnalité
 
+Q2
+
+# Budget
+- Integration de la commande budget afin de permettre au utilisateur de faire leur budget
+
 Q1
 
 ### Transactions

@@ -7,6 +7,7 @@ from fam import auth
 from fam.command.getting import action
 from fam.database.db import DatabaseType, get_db
 from fam.utils import fprint
+from tests.fixtures.data_fixture import database_url
 
 app = Typer(help="The action of getting things")
 
@@ -42,6 +43,18 @@ def subcategory(
 
         if get_list:
             action.get_subcategory_from_database(db)
+
+
+@app.command(no_args_is_help=True)
+def transaction(
+    get_list: Annotated[bool, typer.Option("--list", "-l", help="")] = False,
+):
+    database_url: str = auth.get_user_database_url()
+
+    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+        if get_list:
+            action.get_transaction_from_database(db)
 
 
 @app.command()

@@ -15,26 +15,30 @@ from fam.enums import BankEnum, FinancialProductEnum
 
 def build_choice(
     items: Sequence[T],
-    name: Literal["classify", "categogy", "standard", "nickname"] = "standard",
+    name: Literal[
+        "classify", "categogy", "standard", "nickname", "transaction"
+    ] = "standard",
 ):
 
     item_dict: dict[int, T] = {}
     item_choice: list[str] = []
+    color: str = "yellow"
 
     for item in items:
         item_dict[item.id] = item
 
         if name == "categogy":
-            color: str = "yellow"
             item_choice.append(
                 f"{item.id}: {item.name} [{color}]({item.category.name})[/{color}]".capitalize()
             )
 
         elif name == "nickname":
-            color: str = "yellow"
             item_choice.append(
                 f"{item.id}: {item.nickname} [{color}]({item.bank_name})[/{color}] - {item.account_type}".capitalize()
             )
+
+        elif name == "transaction":
+            item_choice.append(f"{item.id}: {item.description}".capitalize())
 
         else:
             item_choice.append(f"{item.id}: {item.name}".capitalize())

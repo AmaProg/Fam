@@ -14,6 +14,7 @@ class BaseTable:
     nickname: str
     bank_name: str
     account_type: str
+    description: str
     category: "CategoryTable"
 
 

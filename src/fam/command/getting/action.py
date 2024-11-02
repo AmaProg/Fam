@@ -23,6 +23,21 @@ def get_subcategory_from_database(db: Session) -> None:
     show_choice(subcat_choice)
 
 
+def get_transaction_from_database(db: Session) -> None:
+
+    db_transaction: Sequence[SubCategoryTable] = service.transaction.get_transactions(
+        db
+    )
+
+    if not db_transaction:
+        fprint("No transactions found")
+        raise typer.Abort()
+
+    _, subcat_choice = build_choice(db_transaction, "transaction")
+
+    show_choice(subcat_choice)
+
+
 def get_account_nickname_from_database(db: Session) -> None:
 
     db_nickname: Sequence[AccountNicknameTable] = (
