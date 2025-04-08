@@ -2,6 +2,7 @@ from enum import Enum
 
 tangerine: str = "tangerine".lower()
 bmo: str = "bmo"
+desjardin = "desjardin"
 credit_card: str = "credit card"
 check_account: str = "check account"
 save_account: str = "save account"
@@ -10,6 +11,7 @@ save_account: str = "save account"
 class BankEnum(str, Enum):
     BMO = bmo
     TANGERINE = tangerine
+    DESJARDIN = desjardin
 
 
 class InstitutionEnum(Enum):
@@ -20,7 +22,7 @@ class InstitutionEnum(Enum):
     CIBC = "CIBC".lower()
     NATIONAL = "National".lower()
     HSBC = "HSBC".lower()
-    DESJARDINS = "Desjardins".lower()
+    DESJARDINS = desjardin
     WEALTHSIMPLE = "Wealthsimple".lower()
     QUESTRADE = "Questrade".lower()
     PC = "PC Financial".lower()

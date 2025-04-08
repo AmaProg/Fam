@@ -1,10 +1,11 @@
-from fam.bank import bmo, tangerine
+from fam.bank import BMO, Tangerine, Desjardin
 from fam.enums import BankEnum
 
 
 BANK_INST = {
-    BankEnum.BMO: bmo.BMO(),
-    BankEnum.TANGERINE: tangerine.Tangerine(),
+    BankEnum.BMO: BMO(),
+    BankEnum.TANGERINE: Tangerine(),
+    BankEnum.DESJARDIN: Desjardin(),
 }
 
-BANK_INSTANCE_TYPE = bmo.BMO | tangerine.Tangerine
+BANK_INSTANCE_TYPE = BMO | Tangerine | Desjardin

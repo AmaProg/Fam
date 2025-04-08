@@ -8,7 +8,7 @@ from fam.command.creating import create
 from fam.command.subcategory import subcategory
 from fam.command.deleting import delete
 from fam.command.getting import get
-from fam.command.financial import finance
+from fam.command.financial import finance, calculator
 
 
 MAIN: List[dict[str, Any]] = [
@@ -21,4 +21,5 @@ MAIN: List[dict[str, Any]] = [
     delete.delete_command,
     get.get_command,
     finance.finance_command,
+    calculator.calculator_command,
 ]

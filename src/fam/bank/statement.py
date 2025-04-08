@@ -22,6 +22,7 @@ class BankStatement:
         bank: dict[BankEnum, Any] = {
             BankEnum.BMO: self._standardize_bmo_statement,
             BankEnum.TANGERINE: self._standardize_tangerine_statement,
+            BankEnum.DESJARDIN: self._standardize_tangerine_statement,
         }
 
         func = bank.get(bank_name, None)

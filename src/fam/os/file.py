@@ -63,6 +63,7 @@ class File:
         bank_configurations = {
             BankEnum.BMO: {"skiprows": 1},
             BankEnum.TANGERINE: {"encoding": "ISO-8859-1"},
+            BankEnum.DESJARDIN: {"encoding": "ISO-8859-1"},
             # Ajoutez d'autres banques et configurations ici si nécessaire
         }
 
