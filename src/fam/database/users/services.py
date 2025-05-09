@@ -291,3 +291,32 @@ def get_transaction_by_date_product_bank_classification(
         db.rollback()
         print(e)
         return []
+
+
+def get_transaction_by_date_and_classification(
+    db: Session,
+    date_from: int,
+    date_to: int,
+    classsification_name: str,
+) -> Sequence[TransactionTable]:
+
+    try:
+        query: Select = (
+            select(TransactionTable)
+            .join(ClassificationTable)
+            .join(AccountTable)
+            .where(
+                AccountTable.name == AccountSectionEnum.EXPENSE.value,
+                ClassificationTable.name == classsification_name,
+                TransactionTable.date.between(date_to, date_from),
+                TransactionTable.transaction_type == TransactionTypeEnum.DEBIT.value,
+            )
+        )
+
+        result: Sequence[TransactionTable] = db.scalars(query).all()
+
+        return result
+    except SQLAlchemyError as e:
+        db.rollback()
+        print(e)
+        return []
