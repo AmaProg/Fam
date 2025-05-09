@@ -1,33 +1,38 @@
-from msilib import sequence
+from datetime import datetime
 from typing import Sequence
 from sqlalchemy.orm import Session
 from sqlalchemy import Select, select, Delete, delete
 from sqlalchemy.exc import SQLAlchemyError
-
 from fam.database.users.models import AccountTable, TransactionTable
 from fam.database.users.schemas import CreateTransactionModel
+from fam.command.utils import date_to_timestamp
 
 
-def get_transaction_by_transaction_type_account(
+def by_transaction_type_and_account(
     db: Session,
     account_name: str,
     transaction_type: str,
+    to_: datetime,
+    from_: datetime,
 ) -> Sequence[TransactionTable]:
     try:
-        query: Select = (
+        query = (
             select(TransactionTable)
             .join(AccountTable)
             .where(
                 AccountTable.name == account_name,
                 TransactionTable.transaction_type == transaction_type,
+                TransactionTable.date.between(
+                    date_to_timestamp(to_.strftime("%Y%m%d")),
+                    date_to_timestamp(from_.strftime("%Y%m%d")),
+                ),
             )
         )
 
-        db_transanction: Sequence[TransactionTable] = db.scalars(query).all()
+        db_transaction: Sequence[TransactionTable] = db.scalars(query).all()
+        return db_transaction
 
-        return db_transanction
-
-    except:
+    except Exception:
         db.rollback()
         return []
 

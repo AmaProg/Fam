@@ -1,5 +1,4 @@
 from copy import copy
-from datetime import datetime
 from typing_extensions import Annotated
 from typing import Any
 import typer
@@ -10,6 +9,7 @@ from rich.console import Console
 from fam import auth
 from fam.command import financial
 from fam.database.db import DatabaseType, get_db
+from .utils import get_year_range
 
 
 app = Typer(
@@ -21,7 +21,20 @@ finance_command: dict[str, Any] = {"app": app, "name": "finance"}
 
 
 @app.command(help="Allows you to view the income statement.")
-def income_statement():
+def income_statement(
+    to: Annotated[str, typer.Option("--to", "-t", help="")] = None,
+    from_: Annotated[str, typer.Option("--from_", "-f", help="")] = None,
+):
+
+    to_date, from_date = get_year_range(from_, to)
+
+    str_date = (
+        f"{to_date.year} - {from_date.year}"
+        if to_date.year != from_date.year
+        else str(from_date.year)
+    )
+
+    to_date, from_date = get_year_range(from_, to)
 
     database_url: str = auth.get_user_database_url()
 
@@ -34,8 +47,9 @@ def income_statement():
         header="detail".capitalize(),
     )
 
+    # add column for the year
     income_statement_table.add_column(
-        header=str(datetime.now().year),
+        header=str(str_date),
     )
 
     with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
@@ -43,10 +57,14 @@ def income_statement():
         income_statement_table, total_income = financial.income_section.create_table(
             db=db,
             income_table=copy(income_statement_table),
+            to_=to_date,
+            from_=from_date,
         )
         income_statement_table, total_expense = financial.expense_section.create_table(
             db=db,
             expense_table=copy(income_statement_table),
+            to_=to_date,
+            from_=from_date,
         )
 
     income_statement_table.add_row(

@@ -1,10 +1,10 @@
 import pandas as pd
 from typing import Sequence
-from pandas import DataFrame, Series
+from pandas import DataFrame
 from rich.table import Table
 from sqlalchemy.orm import Session
+from datetime import datetime
 
-from fam.command.financial import fetch
 from fam.command.financial.statement import (
     add_subcategory,
     group_transaction,
@@ -14,14 +14,24 @@ from fam.database.users import service
 from fam.database.users.models import TransactionTable
 from fam.enums import AccountSectionEnum, TransactionTypeEnum
 from fam.command import utils
+from fam.database.users import service
 
 
-def create_table(db: Session, income_table: Table) -> tuple[Table, float]:
+def create_table(
+    db: Session,
+    income_table: Table,
+    to_: datetime,
+    from_: datetime,
+) -> tuple[Table, float]:
 
-    db_transaction: Sequence[TransactionTable] = fetch.fetch_transaction(
-        db=db,
-        account_section=AccountSectionEnum.INCOME,
-        transaction_type=TransactionTypeEnum.CREDIT,
+    db_transaction: Sequence[TransactionTable] = (
+        service.transaction.by_transaction_type_and_account(
+            db=db,
+            account_name=AccountSectionEnum.INCOME.value,
+            transaction_type=TransactionTypeEnum.CREDIT.value,
+            to_=to_,
+            from_=from_,
+        )
     )
 
     if len(db_transaction) == 0:
