@@ -7,7 +7,6 @@ from fam import auth
 from fam.command.getting import action
 from fam.database.db import DatabaseType, get_db
 from fam.utils import fprint
-from tests.fixtures.data_fixture import database_url
 
 app = Typer(help="The action of getting things")
 

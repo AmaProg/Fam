@@ -131,3 +131,90 @@ def generate_invoice_table(
     console.print("\n")
     console.print(table)
     console.print("\n")
+
+
+def generate_invoice_netrefund(
+    trans1: Sequence[TransactionTable],
+    trans2: Sequence[TransactionTable],
+    classification_name: str,
+    invoice_title: str,
+) -> None:
+    table: Table = Table(title=invoice_title, style="bold cyan")
+    headers = [
+        classification_name.capitalize(),
+        "Category",
+        "Subcategory",
+        "Trans1 [$]",
+        "Trans2 [$]",
+        "Difference [$]",
+    ]
+
+    for header in headers:
+        table.add_column(header=header, justify="left")
+
+    def to_df(transactions: Sequence[TransactionTable]) -> DataFrame:
+        return pd.DataFrame(
+            [
+                {
+                    "category_name": t.subcategory.category.name,
+                    "subcategory_name": t.subcategory.name,
+                    "amount": t.amount * t.payment_proportion,  # montant ajusté
+                }
+                for t in transactions
+            ]
+        )
+
+    df1 = (
+        to_df(trans1).groupby(["category_name", "subcategory_name"]).sum().reset_index()
+    )
+    df2 = (
+        to_df(trans2).groupby(["category_name", "subcategory_name"]).sum().reset_index()
+    )
+
+    merged = pd.merge(
+        df1,
+        df2,
+        on=["category_name", "subcategory_name"],
+        how="outer",
+        suffixes=("_trans1", "_trans2"),
+    ).fillna(0)
+
+    merged["difference"] = merged["amount_trans2"] - merged["amount_trans1"]
+
+    total_trans1 = 0.0
+    total_trans2 = 0.0
+    total_difference = 0.0
+
+    for _, row in merged.iterrows():
+        amt1 = row["amount_trans1"]
+        amt2 = row["amount_trans2"]
+        diff = row["difference"]
+
+        total_trans1 += amt1
+        total_trans2 += amt2
+        total_difference += diff
+
+        table.add_row(
+            classification_name,
+            row["category_name"],
+            row["subcategory_name"],
+            f"{amt1:.2f}",
+            f"{amt2:.2f}",
+            f"{diff:.2f}",
+        )
+
+    # Ligne vide pour séparer
+    table.add_row(*[""] * len(headers))
+    table.add_row(
+        "",
+        "",
+        "Total Global",
+        f"{total_trans1:.2f}",
+        f"{total_trans2:.2f}",
+        f"{total_difference:.2f}",
+    )
+
+    console = Console()
+    console.print("\n")
+    console.print(table)
+    console.print("\n")

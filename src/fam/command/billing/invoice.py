@@ -258,3 +258,84 @@ def generate(
     except Exception as e:
         print(e)
         raise typer.Abort()
+
+
+@app.command(help="refund invoice by different bill")
+def netrefund(
+    from_: Annotated[
+        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+    ] = None,
+    to_: Annotated[
+        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+    ] = None,
+):
+    try:
+        # get user database_url
+        database_url: str = auth.get_user_database_url()
+        transction_list = []
+
+        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+
+            db_classification: Sequence[ClassificationTable] = (
+                service.classification.get_all_classification(db)
+            )
+
+            class_dict, class_choice = build_choice(db_classification)
+
+            show_choice(class_choice)
+
+            id_str: str = typer.prompt(
+                type=str, text="Please choose classifications separated by commas (,)"
+            )
+
+            id_list: list[str] = normalize_list(id_str)
+
+            classification_list: list[str] = []
+
+            for id in id_list:
+
+                key_id: int = int(id)
+
+                classification_table: ClassificationTable | None = class_dict.get(
+                    key_id, None
+                )
+
+                if classification_table is None:
+                    fprint(
+                        f"The id '{key_id}' is not valid. The class will be ignored."
+                    )
+                    continue
+
+                classification_list.append(classification_table.name)
+
+            for name in classification_list:
+
+                # get transaction from date and classification
+                db_transaction: Sequence[TransactionTable] = (
+                    user_services.get_transaction_by_date_and_classification(
+                        db=db,
+                        date_from=date_to_timestamp(from_),
+                        date_to=date_to_timestamp(to_),
+                        classsification_name=name,
+                    )
+                )
+
+                if len(db_transaction) == 0:
+                    fprint(
+                        f"No transaction for classification with identifier {name}.",
+                        color="yellow",
+                    )
+
+                    continue
+                else:
+                    transction_list.append(db_transaction)
+
+            action.generate_invoice_netrefund(
+                classification_name=classification_list[0],
+                invoice_title="test",
+                trans1=transction_list[0],
+                trans2=transction_list[1],
+            )
+
+    except Exception as e:
+        print(e)
