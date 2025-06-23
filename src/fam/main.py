@@ -1,7 +1,12 @@
+import typer
+import subprocess
+import shutil
+
+
 from pathlib import Path
 from typing_extensions import Annotated
 
-import typer
+
 from typer import Typer
 from rich import print
 
@@ -10,13 +15,16 @@ from fam.database.models import UserTable
 from fam.database.schemas import CreateUser
 from fam.database import services as app_services
 from fam.database.users import services as user_services
-from fam.database.db import get_db
+from fam.database.db import DatabaseType, get_db
 from fam.add_command import MAIN
+from fam.os import file
 from fam.utils import fAborted, fprint, fprint_panel, print_dev_mode
 from fam.callback import display_version
 from fam.cli import app_cli
 from fam import auth, filename, utils, action
 from fam.os.settings import settings
+from fam.state import Context
+from fam.log.log import logger
 
 
 app = Typer(no_args_is_help=True)
@@ -203,7 +211,7 @@ def upgrade():
 
 @app.command(
     help="Allows you to synchronize the database with a Cloud service installed on the desktop.",
-    no_args_is_help=True,
+    no_args_is_help=False,
 )
 def sync(
     foldername: Annotated[
@@ -212,27 +220,93 @@ def sync(
             "--foldername",
             "-f",
             help="Folder path cloud service install on the computer.",
-            prompt="",
+            prompt="enter the path to the synchronization folder",
         ),
-    ] = "",
+    ],
 ):
     # Get user session
+    with Context.db as db:
 
-    # Ask the user for the path to the sync folder
+        data: dict[str, str] = {}
 
-    # Check if the folder exists
+        # Check if the syn folder exists
+        sync_folder: Path = Path(foldername)
 
-    # Check if the path is already synced in the config file
+        if not sync_folder.absolute().exists:
+            logger.error("The synchronization folder does not exist.")
+            raise typer.Abort()
 
-    # Add sync path in the config file
+        # Creates a preference file in json format if it does not exist and inject data
+        db_path: Path = Path(db.get_bind().url.database)  # type: ignore
+        preference_filename = db_path.parent.parent / "user_preference.json"
 
-    # Add database to the sync folder
+        file.File.create_file(
+            dir_path=preference_filename.parent,
+            filename=preference_filename.name,
+        )
 
-    # Check if the database is not corrupt
+        sync_path: Path = sync_folder / db_path.name
+
+        data["db"] = sync_path.as_posix()
+
+        file.File.save_file(
+            data=data,
+            path=preference_filename.absolute(),
+            type_file="json",
+        )
+
+        # Copy the original database to the cloud folder
+        src: str = db_path.as_posix()
+        dst: str = sync_path.as_posix()
+
+        shutil.copy2(src=src, dst=dst)
 
     # Print message
-
     fprint("Database synchronization was completed successfully.")
+
+
+@app.command(help="Allows you to manage database backups.")
+def backup():
+    pass
+
+
+@app.command(help="Allows you to retrieve information from your database.")
+def db(
+    location: Annotated[
+        bool,
+        typer.Option(
+            "--location",
+            "-l",
+            help="Allows you to retrieve the path to the database location",
+        ),
+    ] = False,
+    goto: Annotated[
+        bool,
+        typer.Option(
+            "--goto-db",
+            "-g",
+            help="Allows you to open the folder containing the database",
+        ),
+    ] = False,
+):
+    # Get user session.
+    # database_url: str = auth.get_user_database_url()
+
+    try:
+
+        with Context.db as db:
+
+            db_path: Path = Path(db.get_bind().url.database)  # type: ignore
+
+            if location:
+                fprint(db_path.absolute())  # type: ignore
+
+            if goto:
+                subprocess.run(["explorer", db_path.absolute().parent])
+
+    except Exception as e:
+        logger.error(e)
+        fAborted()
 
 
 @app.callback(invoke_without_command=True)
@@ -264,6 +338,11 @@ def main(
             raise typer.Abort()
 
         settings.update.check_new_version()
+
+    # verification de la connextion du l'utilisateur
+    if ctx.invoked_subcommand not in ["logout", "login", "signup", "init"]:
+        Context.database_url = auth.get_user_database_url()
+        Context.db = get_db(db_path=Context.database_url, db_type=DatabaseType.USER)  # type: ignore
 
 
 if __name__ == "__main__":

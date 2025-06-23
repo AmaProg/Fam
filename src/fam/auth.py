@@ -16,7 +16,7 @@ def get_user_session() -> dict[str, Any]:
 
         sess_path: Path = app_dir / "users" / "session.yaml"
 
-        session_data: dict[str, Any] = File.read_file(sess_path.as_posix(), "yaml")
+        session_data: dict[str, Any] = File.read_file(sess_path.absolute(), "yaml")
 
         return session_data["session"]
 

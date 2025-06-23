@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any, Literal
 import tkinter as tk
@@ -16,7 +17,14 @@ class File:
     def __init__(self, dir: directory.Dir) -> None:
         self._directory: directory.Dir = dir
 
-    def create_file(self, dir_path: str, filename: str) -> None:
+    @classmethod
+    def create_file(cls, dir_path: str, filename: str) -> None:
+        """Permet de cree un fichier
+
+        Args:
+            dir_path (str): Chemin du dossier
+            filename (str): Nom du fichier avec l'extention.
+        """
 
         file: Path = Path(dir_path) / filename
 
@@ -45,11 +53,14 @@ class File:
             yaml.safe_dump(data, f, allow_unicode=True)
 
     @classmethod
-    def save_file(cls, path: str, data, type_file: Literal["yaml"]):
+    def save_file(cls, path: str, data, type_file: Literal["yaml", "json", "txt"]):
         with open(path, "w", encoding=UTF_8) as f:
 
             if type_file == "yaml":
                 yaml.safe_dump(data, f)
+
+            elif type_file == "json":
+                json.dump(data, f, indent=2)
 
     @classmethod
     def open_dialog(cls, bank: str) -> str:
