@@ -10,6 +10,7 @@ from fam.database.users.models import (
 )
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.utils import fprint
+from fam.log.log import logger
 
 
 def add_new_statement(
@@ -26,11 +27,11 @@ def add_new_statement(
     )
 
     if not db_subcategories:
-        fprint("Please create a subcategory before adding a bank statement.")
+        logger.error("Please create a subcategory before adding a bank statement.")
         raise typer.Abort()
 
     if not db_classification:
-        fprint(
+        logger.error(
             "An error occurred while retrieving the transaction classification. Please recreate classifications again."
         )
         raise typer.Abort()

@@ -14,15 +14,16 @@ from fam.database.users.models import (
 )
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.os.file import File
-from fam.utils import fAborted, fprint
+from fam.utils import fAborted, fprint, fprint_panel
 from fam.database.users import service, services as user_services
+from fam.log.log import logger, log_verbose, State
 
-app = Typer(help="Allows you to add items to the folder.")
+app = Typer(help="Allows you to add files to the database.")
 
 add_command: dict[str, Any] = {"app": app, "name": "add"}
 
 
-@app.command()
+@app.command(help="Allows you to retrieve bank statement information.")
 def statement(
     bank: Annotated[
         BankEnum,
@@ -60,19 +61,6 @@ def statement(
         # Get csv file and convert to dataframe
         csv_filename: str = File.open_dialog(bank) if filename == "" else filename
 
-        if csv_filename == "":
-            raise typer.Abort()
-
-        if Path(csv_filename).suffix.lower() != ".csv":
-            fprint("Invalid file format: not a CSV.")
-            raise typer.Abort()
-
-        df_csv: DataFrame | None = File.read_csv_by_bank(csv_filename, bank)
-
-        if df_csv is None:
-            fprint(f"The {bank.value} bank csv file has been corrupted.")
-            raise typer.Abort()
-
         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
             db_nickname: Sequence[AccountNicknameTable] = (
@@ -89,6 +77,22 @@ def statement(
                 if nickname is not None:
                     break
 
+            if csv_filename == "":
+                logger.error("The csv file is empty")
+                raise typer.Abort()
+
+            if Path(csv_filename).suffix.lower() != ".csv":
+                logger.error("Invalid file format: not a CSV.")
+                raise typer.Abort()
+            log_verbose(f"bank statement retrieve: {Path(csv_filename).name}")
+
+            df_csv: DataFrame | None = File.read_csv_by_bank(csv_filename, bank)
+            log_verbose(df_csv)
+
+            if df_csv is None:
+                logger.error(f"The {bank.value} bank csv file has been corrupted.")
+                raise typer.Abort()
+
             action.add_new_statement(
                 db=db,
                 bank=bank,
@@ -102,17 +106,17 @@ def statement(
         )
 
     except FileNotFoundError:
-        fprint("Please log in")
+        logger.error("Please log in")
         fAborted()
 
     except typer.Abort as e:
         fAborted()
 
     except Exception as e:
-        fprint(e)
+        logger.error(e)
 
 
-@app.command(help="Allows you to add a banking institution.")
+@app.command(help="Allows you to add a bank statement template")
 def institution(
     name: Annotated[
         str,
@@ -131,6 +135,15 @@ def institution(
 
         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
+            # 1. Demander a l'utilisateur le nom de la banque
+            # 2. Demande a l'utilisateur les informatins suivante:
+            #    - entete de la date de transaction
+            #    - entete de la date d'enregistrement
+            #    - entete du montant de la transaction
+            #    - enten de la description de la transaction
+            # 3. tu sauvegarde les informations en format json en ayant le nom de la banque en nom de fichier.
+            # 4. afficher que les donnees ont ete sauvegarder avec success.
+
             # Add institution in the database
             service.banking_institution.create_new_bank_institution_by_name(
                 db=db,
@@ -141,3 +154,11 @@ def institution(
 
     except Exception as e:
         fprint(e)
+
+
+@app.callback()
+def main(verbose: bool = False):
+
+    if verbose:
+        print("Will write verbose output")
+        State.verbose = True

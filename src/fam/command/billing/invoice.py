@@ -52,6 +52,8 @@ def payment(
 ):
     # Get user database url
 
+    # Demander a l'utilisateur pour quel type de compte de pa
+
     # Get all transaction from invoice type and bank name
 
     # get all bank account
