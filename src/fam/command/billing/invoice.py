@@ -17,63 +17,77 @@ from fam.utils import fAborted, fprint, message_coming_soon, normalize_list
 from fam.command.billing import action
 from fam.database.users import services as user_services
 from fam.database.users import service
+from fam.state import Context
+from fam.log.log import logger
 
-app = Typer(help="Allows you to manage invoices.")
+app = Typer(help="Allows you to manage invoices.", no_args_is_help=True)
 
 invoice_command: dict = {"app": app, "name": "invoice"}
 
 
-@app.command(help="Allows you to define the amounts needed to pay invoices.")
-def payment(
-    invoice_type: Annotated[
-        InvoiceTypeEnum,
-        typer.Option(
-            "--invoice-type",
-            "-i",
-            help="Financial Product to pay",
-            prompt="Which financial product do you want to pay for?",
-        ),
-    ] = None,
-    bank: Annotated[
-        BankEnum,
-        typer.Option(
-            "--bank",
-            "-b",
-            help="Bank name",
-            prompt="Which bank do you want to pay your bill for?",
-        ),
-    ] = None,
-    from_: Annotated[
-        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
-    ] = None,
-    to_: Annotated[
-        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
-    ] = None,
-):
-    # Get user database url
+# @app.command(help="Allows you to define the amounts needed to pay invoices.")
+# def payment(
+#     invoice_type: Annotated[
+#         InvoiceTypeEnum,
+#         typer.Option(
+#             "--invoice-type",
+#             "-i",
+#             help="Financial Product to pay",
+#             prompt="Which financial product do you want to pay for?",
+#         ),
+#     ] = None,
+#     bank: Annotated[
+#         BankEnum,
+#         typer.Option(
+#             "--bank",
+#             "-b",
+#             help="Bank name",
+#             prompt="Which bank do you want to pay your bill for?",
+#         ),
+#     ] = None,
+#     from_: Annotated[
+#         str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+#     ] = None,
+#     to_: Annotated[
+#         str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+#     ] = None,
+# ):
+#     # Get user database url
 
-    # Demander a l'utilisateur pour quel type de compte de pa
+#     # Demander a l'utilisateur pour quel type de compte de pa
 
-    # Get all transaction from invoice type and bank name
+#     # Get all transaction from invoice type and bank name
 
-    # get all bank account
+#     # get all bank account
 
-    # check if the db return empty list
+#     # check if the db return empty list
 
-    # gourpe all subcategory and show the price and ask user with account do you yand payer this account
+#     # gourpe all subcategory and show the price and ask user with account do you yand payer this account
 
-    # save all transaction in the payment_invoice.yaml
+#     # save all transaction in the payment_invoice.yaml
 
-    fprint("")
+#     fprint("")
 
 
-@app.command()
+@app.command(help="Builds an invoice that must be paid")
 def build(
     from_: Annotated[
-        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+        str,
+        typer.Option(
+            "--from",
+            "-f",
+            help="Invoice start date",
+            prompt="Please indicate start date (format: YYYYMMDD)",
+        ),
     ] = None,
     to_: Annotated[
-        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+        str,
+        typer.Option(
+            "--to",
+            "-t",
+            help="Invoice end date",
+            prompt="Please indicate the end date (format: YYYYMMDD)",
+        ),
     ] = None,
     product: Annotated[
         FinancialProductEnum,
@@ -82,6 +96,7 @@ def build(
             "-p",
             prompt="Please indicate for which financial product",
             case_sensitive=True,
+            help="",
         ),
     ] = None,
     bank: Annotated[
@@ -103,7 +118,7 @@ def build(
                 fprint("One of the dates does not have the correct format.")
                 raise typer.Abort()
 
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+        with Context.db as db:
 
             db_classification: Sequence[ClassificationTable] = (
                 user_services.get_all_classification(db)
@@ -170,174 +185,174 @@ def build(
         fAborted()
 
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
-@app.command(help="Generate the invoice.")
-def generate(
-    from_: Annotated[
-        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
-    ] = None,
-    to_: Annotated[
-        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
-    ] = None,
-):
+# @app.command(help="Generate the invoice.")
+# def generate(
+#     from_: Annotated[
+#         str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+#     ] = None,
+#     to_: Annotated[
+#         str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+#     ] = None,
+# ):
 
-    try:
-        # get user database_url
-        database_url: str = auth.get_user_database_url()
+#     try:
+#         # get user database_url
+#         database_url: str = auth.get_user_database_url()
 
-        # verify if the date is valide
-        date_list: list[str] = [from_, to_]
+#         # verify if the date is valide
+#         date_list: list[str] = [from_, to_]
 
-        for date in date_list:
+#         for date in date_list:
 
-            if is_valid_date(date) == False:
-                fprint("One of the dates does not have the correct format.")
-                raise typer.Abort()
+#             if is_valid_date(date) == False:
+#                 fprint("One of the dates does not have the correct format.")
+#                 raise typer.Abort()
 
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+#         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-            db_classification: Sequence[ClassificationTable] = (
-                service.classification.get_all_classification(db)
-            )
+#             db_classification: Sequence[ClassificationTable] = (
+#                 service.classification.get_all_classification(db)
+#             )
 
-            class_dict, class_choice = build_choice(db_classification)
+#             class_dict, class_choice = build_choice(db_classification)
 
-            show_choice(class_choice)
+#             show_choice(class_choice)
 
-            id_str: str = typer.prompt(
-                type=str, text="Please choose classifications separated by commas (,)"
-            )
+#             id_str: str = typer.prompt(
+#                 type=str, text="Please choose classifications separated by commas (,)"
+#             )
 
-            id_list: list[str] = normalize_list(id_str)
+#             id_list: list[str] = normalize_list(id_str)
 
-            classification_list: list[str] = []
+#             classification_list: list[str] = []
 
-            for id in id_list:
+#             for id in id_list:
 
-                key_id: int = int(id)
+#                 key_id: int = int(id)
 
-                classification_table: ClassificationTable | None = class_dict.get(
-                    key_id, None
-                )
+#                 classification_table: ClassificationTable | None = class_dict.get(
+#                     key_id, None
+#                 )
 
-                if classification_table is None:
-                    fprint(
-                        f"The id '{key_id}' is not valid. The class will be ignored."
-                    )
-                    continue
+#                 if classification_table is None:
+#                     fprint(
+#                         f"The id '{key_id}' is not valid. The class will be ignored."
+#                     )
+#                     continue
 
-                classification_list.append(classification_table.name)
+#                 classification_list.append(classification_table.name)
 
-            for name in classification_list:
+#             for name in classification_list:
 
-                # get transaction from date and classification
-                db_transaction: Sequence[TransactionTable] = (
-                    user_services.get_transaction_by_date_and_classification(
-                        db=db,
-                        date_from=date_to_timestamp(from_),
-                        date_to=date_to_timestamp(to_),
-                        classsification_name=name,
-                    )
-                )
+#                 # get transaction from date and classification
+#                 db_transaction: Sequence[TransactionTable] = (
+#                     user_services.get_transaction_by_date_and_classification(
+#                         db=db,
+#                         date_from=date_to_timestamp(from_),
+#                         date_to=date_to_timestamp(to_),
+#                         classsification_name=name,
+#                     )
+#                 )
 
-                if len(db_transaction) == 0:
-                    fprint(
-                        f"No transaction for classification with identifier {name}.",
-                        color="yellow",
-                    )
+#                 if len(db_transaction) == 0:
+#                     fprint(
+#                         f"No transaction for classification with identifier {name}.",
+#                         color="yellow",
+#                     )
 
-                    continue
+#                     continue
 
-                # Build each classification with colonne Subcategory | Amount Subcategory | Paiement Porportion | Amount with Proportion
-                action.generate_invoice_table(
-                    classification_name=name,
-                    invoice_title=f"Invoice for {name} transaction: {from_} - {to_}",
-                    transaction_list=db_transaction,
-                )
+#                 # Build each classification with colonne Subcategory | Amount Subcategory | Paiement Porportion | Amount with Proportion
+#                 action.generate_invoice_table(
+#                     classification_name=name,
+#                     invoice_title=f"Invoice for {name} transaction: {from_} - {to_}",
+#                     transaction_list=db_transaction,
+#                 )
 
-    except Exception as e:
-        print(e)
-        raise typer.Abort()
+#     except Exception as e:
+#         print(e)
+#         raise typer.Abort()
 
 
-@app.command(help="refund invoice by different bill")
-def netrefund(
-    from_: Annotated[
-        str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
-    ] = None,
-    to_: Annotated[
-        str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
-    ] = None,
-):
-    try:
-        # get user database_url
-        database_url: str = auth.get_user_database_url()
-        transction_list = []
+# @app.command(help="refund invoice by different bill")
+# def netrefund(
+#     from_: Annotated[
+#         str, typer.Option("--from", "-f", help="", prompt="Please indicate start date")
+#     ] = None,
+#     to_: Annotated[
+#         str, typer.Option("--to", "-t", help="", prompt="Please indicate the end date")
+#     ] = None,
+# ):
+#     try:
+#         # get user database_url
+#         database_url: str = auth.get_user_database_url()
+#         transction_list = []
 
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+#         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-            db_classification: Sequence[ClassificationTable] = (
-                service.classification.get_all_classification(db)
-            )
+#             db_classification: Sequence[ClassificationTable] = (
+#                 service.classification.get_all_classification(db)
+#             )
 
-            class_dict, class_choice = build_choice(db_classification)
+#             class_dict, class_choice = build_choice(db_classification)
 
-            show_choice(class_choice)
+#             show_choice(class_choice)
 
-            id_str: str = typer.prompt(
-                type=str, text="Please choose classifications separated by commas (,)"
-            )
+#             id_str: str = typer.prompt(
+#                 type=str, text="Please choose classifications separated by commas (,)"
+#             )
 
-            id_list: list[str] = normalize_list(id_str)
+#             id_list: list[str] = normalize_list(id_str)
 
-            classification_list: list[str] = []
+#             classification_list: list[str] = []
 
-            for id in id_list:
+#             for id in id_list:
 
-                key_id: int = int(id)
+#                 key_id: int = int(id)
 
-                classification_table: ClassificationTable | None = class_dict.get(
-                    key_id, None
-                )
+#                 classification_table: ClassificationTable | None = class_dict.get(
+#                     key_id, None
+#                 )
 
-                if classification_table is None:
-                    fprint(
-                        f"The id '{key_id}' is not valid. The class will be ignored."
-                    )
-                    continue
+#                 if classification_table is None:
+#                     fprint(
+#                         f"The id '{key_id}' is not valid. The class will be ignored."
+#                     )
+#                     continue
 
-                classification_list.append(classification_table.name)
+#                 classification_list.append(classification_table.name)
 
-            for name in classification_list:
+#             for name in classification_list:
 
-                # get transaction from date and classification
-                db_transaction: Sequence[TransactionTable] = (
-                    user_services.get_transaction_by_date_and_classification(
-                        db=db,
-                        date_from=date_to_timestamp(from_),
-                        date_to=date_to_timestamp(to_),
-                        classsification_name=name,
-                    )
-                )
+#                 # get transaction from date and classification
+#                 db_transaction: Sequence[TransactionTable] = (
+#                     user_services.get_transaction_by_date_and_classification(
+#                         db=db,
+#                         date_from=date_to_timestamp(from_),
+#                         date_to=date_to_timestamp(to_),
+#                         classsification_name=name,
+#                     )
+#                 )
 
-                if len(db_transaction) == 0:
-                    fprint(
-                        f"No transaction for classification with identifier {name}.",
-                        color="yellow",
-                    )
+#                 if len(db_transaction) == 0:
+#                     fprint(
+#                         f"No transaction for classification with identifier {name}.",
+#                         color="yellow",
+#                     )
 
-                    continue
-                else:
-                    transction_list.append(db_transaction)
+#                     continue
+#                 else:
+#                     transction_list.append(db_transaction)
 
-            action.generate_invoice_netrefund(
-                classification_name=classification_list[0],
-                invoice_title="test",
-                trans1=transction_list[0],
-                trans2=transction_list[1],
-            )
+#             action.generate_invoice_netrefund(
+#                 classification_name=classification_list[0],
+#                 invoice_title="test",
+#                 trans1=transction_list[0],
+#                 trans2=transction_list[1],
+#             )
 
-    except Exception as e:
-        print(e)
+#     except Exception as e:
+#         print(e)

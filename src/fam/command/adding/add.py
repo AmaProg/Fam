@@ -17,13 +17,14 @@ from fam.os.file import File
 from fam.utils import fAborted, fprint, fprint_panel
 from fam.database.users import service, services as user_services
 from fam.log.log import logger, log_verbose, State
+from fam.state import Context
 
-app = Typer(help="Allows you to add files to the database.")
+app = Typer(help="Allows you to add files to the database.", no_args_is_help=True)
 
 add_command: dict[str, Any] = {"app": app, "name": "add"}
 
 
-@app.command(help="Allows you to retrieve bank statement information.")
+@app.command(help="Allows to retrieve bank statement information.")
 def statement(
     bank: Annotated[
         BankEnum,
@@ -56,16 +57,21 @@ def statement(
 ):
     try:
         # Get user session.
-        database_url: str = auth.get_user_database_url()
+        # database_url: str = auth.get_user_database_url()
 
         # Get csv file and convert to dataframe
         csv_filename: str = File.open_dialog(bank) if filename == "" else filename
 
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+        with Context.db as db:
 
             db_nickname: Sequence[AccountNicknameTable] = (
                 service.account_nickname.get_account_nickname(db)
             )
+
+            if not db_nickname:
+                fprint("Nickname not found. Please create one.")
+                raise typer.Abort()
+
             nickname_dict, nickname_choice = build_choice(db_nickname, "nickname")
 
             while True:
@@ -116,44 +122,44 @@ def statement(
         logger.error(e)
 
 
-@app.command(help="Allows you to add a bank statement template")
-def institution(
-    name: Annotated[
-        str,
-        typer.Option(
-            "--name",
-            "-n",
-            help="",
-            prompt="What is the name of the institution?",
-        ),
-    ] = None,  # type: ignore
-):
-    # Get user datbase url
-    database_url: str = auth.get_user_database_url()
+# @app.command(help="Allows you to add a bank statement template")
+# def institution(
+#     name: Annotated[
+#         str,
+#         typer.Option(
+#             "--name",
+#             "-n",
+#             help="",
+#             prompt="What is the name of the institution?",
+#         ),
+#     ] = None,  # type: ignore
+# ):
+#     # Get user datbase url
+#     database_url: str = auth.get_user_database_url()
 
-    try:
+#     try:
 
-        with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+#         with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
 
-            # 1. Demander a l'utilisateur le nom de la banque
-            # 2. Demande a l'utilisateur les informatins suivante:
-            #    - entete de la date de transaction
-            #    - entete de la date d'enregistrement
-            #    - entete du montant de la transaction
-            #    - enten de la description de la transaction
-            # 3. tu sauvegarde les informations en format json en ayant le nom de la banque en nom de fichier.
-            # 4. afficher que les donnees ont ete sauvegarder avec success.
+#             # 1. Demander a l'utilisateur le nom de la banque
+#             # 2. Demande a l'utilisateur les informatins suivante:
+#             #    - entete de la date de transaction
+#             #    - entete de la date d'enregistrement
+#             #    - entete du montant de la transaction
+#             #    - enten de la description de la transaction
+#             # 3. tu sauvegarde les informations en format json en ayant le nom de la banque en nom de fichier.
+#             # 4. afficher que les donnees ont ete sauvegarder avec success.
 
-            # Add institution in the database
-            service.banking_institution.create_new_bank_institution_by_name(
-                db=db,
-                institution_name=name,
-            )
+#             # Add institution in the database
+#             service.banking_institution.create_new_bank_institution_by_name(
+#                 db=db,
+#                 institution_name=name,
+#             )
 
-            fprint("The banking institution was successfully added")
+#             fprint("The banking institution was successfully added")
 
-    except Exception as e:
-        fprint(e)
+#     except Exception as e:
+#         fprint(e)
 
 
 @app.callback()

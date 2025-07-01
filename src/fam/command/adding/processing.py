@@ -133,7 +133,7 @@ def categorize_transaction_manually(
     # show the message to select a classification.
     cls_id: int = prompt_choice(
         class_choice,
-        "Select a category",
+        "Select a classification",
         transaction_model.description,
     )
 

@@ -4,7 +4,11 @@ import typer
 
 from fam.command.utils import build_choice, show_choice
 from fam.database.users import service
-from fam.database.users.models import AccountNicknameTable, SubCategoryTable
+from fam.database.users.models import (
+    AccountNicknameTable,
+    ClassificationTable,
+    SubCategoryTable,
+)
 from fam.utils import fprint
 
 
@@ -51,3 +55,18 @@ def get_account_nickname_from_database(db: Session) -> None:
     _, nickname_choice = build_choice(db_nickname, "nickname")
 
     show_choice(nickname_choice)
+
+
+def get_classification_from_database(db: Session):
+
+    db_classification: Sequence[ClassificationTable] = (
+        service.classification.get_all_classification(db)
+    )
+
+    if not db_classification:
+        fprint("No classification found")
+        raise typer.Abort()
+
+    _, classify_choice = build_choice(db_classification, "classify")
+
+    show_choice(classify_choice)

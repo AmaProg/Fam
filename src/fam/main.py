@@ -68,24 +68,24 @@ def reset(
         print(f"[{color}]Aborted[/{color}]")
 
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
-@app.command(help="")
-def delete(
-    fam_app: Annotated[
-        bool, typer.Option("--app", "-a", help="Delete the app.")
-    ] = False,
-):
+# @app.command(help="")
+# def delete(
+#     fam_app: Annotated[
+#         bool, typer.Option("--app", "-a", help="Delete the app.")
+#     ] = False,
+# ):
 
-    app_dir: Path = Path(app_cli.directory.app_dir)
+#     app_dir: Path = Path(app_cli.directory.app_dir)
 
-    if fam_app:
-        if typer.confirm("Are you sure you want to delete the app?"):
+#     if fam_app:
+#         if typer.confirm("Are you sure you want to delete the app?"):
 
-            action.delete_app(app_dir)
-        else:
-            raise typer.Abort()
+#             action.delete_app(app_dir)
+#         else:
+#             raise typer.Abort()
 
 
 @app.command(help="User logout.")
@@ -103,7 +103,7 @@ def logout():
         raise typer.Abort()
 
     except Exception as e:
-        fprint(e)
+        logger.error(e)
 
 
 @app.command(help="Authenticate a user by providing their username and password.")
@@ -111,6 +111,8 @@ def login(
     email: Annotated[
         str,
         typer.Option(
+            "--email",
+            "-e",
             prompt=True,
             help="Email or username.",
         ),
@@ -118,6 +120,8 @@ def login(
     password: Annotated[
         str,
         typer.Option(
+            "--password",
+            "-p",
             prompt=True,
             hide_input=True,
             help="Password to log in.",
@@ -125,30 +129,44 @@ def login(
     ],
 ):
     # Check if the user is in the database
-    with get_db() as db:
+    try:
+        with get_db() as db:
 
-        user: UserTable = app_services.get_user_by_email(db, email)
+            user: UserTable = app_services.get_user_by_email(db, email)
 
-        if user is None:
-            fprint("The password or username is invalid.")
-            raise typer.Abort()
+            if user is None:
+                fprint("The password or username is invalid.")
+                raise typer.Abort()
 
-        if not utils.verify_password(password, user.password):
-            fprint("The password or username is invalid.")
-            raise typer.Abort()
+            if not utils.verify_password(password, user.password):
+                fprint("The password or username is invalid.")
+                raise typer.Abort()
 
-    # Create a Session in store info in app dir
-    action.create_session(user)
+        # Create a Session in store info in app dir
+        action.create_session(user)
 
-    fprint("Connection successful.")
+        fprint("Connection successful.")
+
+    except Exception as e:
+        logger.error(e)
 
 
 @app.command(help="Register a new user by providing necessary details.")
 def signup(
-    email: Annotated[str, typer.Option(prompt=True, help="Email or username.")],
+    email: Annotated[
+        str,
+        typer.Option(
+            "--email",
+            "-e",
+            prompt=True,
+            help="Email or username.",
+        ),
+    ],
     password: Annotated[
         str,
         typer.Option(
+            "--password",
+            "-p",
             prompt=True,
             confirmation_prompt=True,
             hide_input=True,
@@ -179,7 +197,7 @@ def signup(
         fAborted()
 
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 @app.command(help="Update the application.")
@@ -188,7 +206,7 @@ def upgrade():
     Upgrade the project by pulling the latest changes from the Git repository.
     """
 
-    database_url: str = auth.get_user_database_url()
+    database_url: str = Context.database_url
 
     try:
         result: bool = settings.update.install_new_version()
@@ -206,68 +224,68 @@ def upgrade():
             raise typer.Abort()
 
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
-@app.command(
-    help="Allows you to synchronize the database with a Cloud service installed on the desktop.",
-    no_args_is_help=False,
-)
-def sync(
-    foldername: Annotated[
-        str,
-        typer.Option(
-            "--foldername",
-            "-f",
-            help="Folder path cloud service install on the computer.",
-            prompt="enter the path to the synchronization folder",
-        ),
-    ],
-):
-    # Get user session
-    with Context.db as db:
+# @app.command(
+#     help="Allows you to synchronize the database with a Cloud service installed on the desktop.",
+#     no_args_is_help=False,
+# )
+# def sync(
+#     foldername: Annotated[
+#         str,
+#         typer.Option(
+#             "--foldername",
+#             "-f",
+#             help="Folder path cloud service install on the computer.",
+#             prompt="enter the path to the synchronization folder",
+#         ),
+#     ],
+# ):
+#     # Get user session
+#     with Context.db as db:
 
-        data: dict[str, str] = {}
+#         data: dict[str, str] = {}
 
-        # Check if the syn folder exists
-        sync_folder: Path = Path(foldername)
+#         # Check if the syn folder exists
+#         sync_folder: Path = Path(foldername)
 
-        if not sync_folder.absolute().exists:
-            logger.error("The synchronization folder does not exist.")
-            raise typer.Abort()
+#         if not sync_folder.absolute().exists:
+#             logger.error("The synchronization folder does not exist.")
+#             raise typer.Abort()
 
-        # Creates a preference file in json format if it does not exist and inject data
-        db_path: Path = Path(db.get_bind().url.database)  # type: ignore
-        preference_filename = db_path.parent.parent / "user_preference.json"
+#         # Creates a preference file in json format if it does not exist and inject data
+#         db_path: Path = Path(db.get_bind().url.database)  # type: ignore
+#         preference_filename = db_path.parent.parent / "user_preference.json"
 
-        file.File.create_file(
-            dir_path=preference_filename.parent,
-            filename=preference_filename.name,
-        )
+#         file.File.create_file(
+#             dir_path=preference_filename.parent,
+#             filename=preference_filename.name,
+#         )
 
-        sync_path: Path = sync_folder / db_path.name
+#         sync_path: Path = sync_folder / db_path.name
 
-        data["db"] = sync_path.as_posix()
+#         data["db"] = sync_path.as_posix()
 
-        file.File.save_file(
-            data=data,
-            path=preference_filename.absolute(),
-            type_file="json",
-        )
+#         file.File.save_file(
+#             data=data,
+#             path=preference_filename.absolute(),
+#             type_file="json",
+#         )
 
-        # Copy the original database to the cloud folder
-        src: str = db_path.as_posix()
-        dst: str = sync_path.as_posix()
+#         # Copy the original database to the cloud folder
+#         src: str = db_path.as_posix()
+#         dst: str = sync_path.as_posix()
 
-        shutil.copy2(src=src, dst=dst)
+#         shutil.copy2(src=src, dst=dst)
 
-    # Print message
-    fprint("Database synchronization was completed successfully.")
+#     # Print message
+#     fprint("Database synchronization was completed successfully.")
 
 
-@app.command(help="Allows you to manage database backups.")
-def backup():
-    pass
+# @app.command(help="Allows you to manage database backups.")
+# def backup():
+#     pass
 
 
 @app.command(help="Allows you to retrieve information from your database.")

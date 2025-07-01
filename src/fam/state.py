@@ -11,4 +11,4 @@ class State:
 @dataclass
 class Context:
     db: _GeneratorContextManager[Session, None, None]
-    database_url: str | None = None
+    database_url: str = ""

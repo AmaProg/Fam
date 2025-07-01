@@ -7,28 +7,30 @@ from fam import auth
 from fam.command.getting import action
 from fam.database.db import DatabaseType, get_db
 from fam.utils import fprint
+from fam.state import Context
+from fam.log.log import logger
 
-app = Typer(help="The action of getting things")
+app = Typer(help="The action of getting things", no_args_is_help=True)
 
 get_command: dict[str, Any] = {"app": app, "name": "get"}
 
 
-@app.command()
-def backup():
+# @app.command()
+# def backup():
 
-    # Get user session
+#     # Get user session
 
-    # Check if the backup folder exists
+#     # Check if the backup folder exists
 
-    # List the backup files
+#     # List the backup files
 
-    # Ask the user which backup file they want
+#     # Ask the user which backup file they want
 
-    # Replace original database with the backup
+#     # Replace original database with the backup
 
-    # Print message
+#     # Print message
 
-    fprint(f"The {1} backup was successfully recovered.")
+#     fprint(f"The {1} backup was successfully recovered.")
 
 
 @app.command(no_args_is_help=True)
@@ -56,16 +58,33 @@ def transaction(
             action.get_transaction_from_database(db)
 
 
-@app.command()
+@app.command(name="nickname", no_args_is_help=True)
 def account_nickname(
-    get_list: Annotated[bool, typer.Option("--list", "-l", help="")] = False,
+    get_list: Annotated[
+        bool, typer.Option("--list", "-l", help="Return the nickname list")
+    ] = False,
 ):
-    database_url: str = auth.get_user_database_url()
+    # database_url: str = auth.get_user_database_url()
 
-    with get_db(db_path=database_url, db_type=DatabaseType.USER) as db:
+    with Context.db as db:
 
         if get_list:
             action.get_account_nickname_from_database(db)
+
+
+@app.command(name="classification", no_args_is_help=True)
+def get_classification(
+    _list: Annotated[bool, typer.Option("--list", "-l", help="")] = False,
+):
+    try:
+
+        with Context.db as db:
+
+            if _list:
+                action.get_classification_from_database(db)
+
+    except Exception as e:
+        logger.error(e)
 
 
 @app.callback()
