@@ -5,7 +5,7 @@ from typer import Typer
 
 from fam.utils import fprint
 
-app = Typer(help="Financial calculator")
+app = Typer(help="Financial calculator", no_args_is_help=True)
 
 calculator_command: dict[str, Any] = {"app": app, "name": "calculator"}
 
