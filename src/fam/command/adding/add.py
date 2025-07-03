@@ -1,23 +1,21 @@
 from pathlib import Path
-from typing import Any, Sequence
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Any, Sequence
 from pandas import DataFrame
 from typer import Typer
 import typer
 
-from fam import auth
 from fam.command.adding import action
 from fam.command.utils import build_choice, prompt_choice
-from fam.database.db import DatabaseType, get_db
 from fam.database.users.models import (
     AccountNicknameTable,
 )
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.os.file import File
-from fam.utils import fAborted, fprint, fprint_panel
-from fam.database.users import service, services as user_services
+from fam.utils import fAborted, fprint
+from fam.database.users import service
 from fam.log.log import logger, log_verbose, State
 from fam.state import Context
+
 
 app = Typer(help="Allows you to add files to the database.", no_args_is_help=True)
 

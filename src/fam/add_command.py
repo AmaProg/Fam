@@ -20,6 +20,6 @@ MAIN: List[dict[str, Any]] = [
     # subcategory.subcategory_command,
     # delete.delete_command,
     get.get_command,
-    # finance.finance_command,
-    # calculator.calculator_command,
+    finance.finance_command,
+    calculator.calculator_command,
 ]

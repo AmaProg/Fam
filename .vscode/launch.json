@@ -90,7 +90,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "src/fam/main.py",
-      "args": ["invoice", "build", "--from", "20240101", "--to", "20240731"],
+      "args": ["invoice", "build", "-f", "20250401", "-t", "20250430", "-b" ,"bmo", "-p", "check account"],
       "envFile": "${workspaceFolder}/.env-pythonpath"
     },
     {

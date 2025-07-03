@@ -9,6 +9,7 @@ from fam.database.users.models import SubCategoryTable, TransactionTable
 from fam.database.users.schemas import CreateTransactionModel
 from fam.enums import BankEnum, FinancialProductEnum
 from fam.utils import fprint
+from fam.institution.bank import Bank
 
 
 def categorize_transaction(
@@ -25,18 +26,21 @@ def categorize_transaction(
     # Standardize bank statement
     bank_statement = BankStatement()
 
-    transaction_list = bank_statement.standardize_statement(
-        bank_name=bank,
-        csv_data=df,
-        product=product,
-    )
+    # transaction_list = bank_statement.standardize_statement(
+    #     bank_name=bank,
+    #     csv_data=df,
+    #     product=product,
+    # )
+
+    institution: Bank = Bank(bank_name=bank)
+    transaction_list = institution.read_statement(account_type=product, statement=df)
 
     # Create a list for transactionTable
     transaction_table_list: list[TransactionTable] = []
 
     for transaction in transaction_list:
 
-        transaction.bank_name = bank.value
+        # transaction.bank_name = bank.value
         transaction.account_nickname_id = nickname_id
         transaction.hash = generate_transaction_hash(transaction)
 

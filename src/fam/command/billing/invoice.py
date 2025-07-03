@@ -106,8 +106,6 @@ def build(
 ):
 
     try:
-        # get user database_url
-        database_url: str = auth.get_user_database_url()
 
         # verify if the date is valide
         date_list: list[str] = [from_, to_]
