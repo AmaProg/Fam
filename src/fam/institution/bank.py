@@ -243,6 +243,7 @@ class Bank:
         FORMAT_STRINGS: dict[BankEnum, str] = {
             BankEnum.BMO: "%Y%m%d",
             BankEnum.TANGERINE: "%m/%d/%Y",
+            BankEnum.DESJARDIN: "%m/%d/%Y",
         }
 
         format_str = FORMAT_STRINGS.get(bank)
