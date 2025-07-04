@@ -23,15 +23,6 @@ def categorize_transaction(
     subcat_dict: dict[int, SubCategoryTable],
 ) -> list[TransactionTable]:
 
-    # Standardize bank statement
-    bank_statement = BankStatement()
-
-    # transaction_list = bank_statement.standardize_statement(
-    #     bank_name=bank,
-    #     csv_data=df,
-    #     product=product,
-    # )
-
     institution: Bank = Bank(bank_name=bank)
     transaction_list = institution.read_statement(account_type=product, statement=df)
 
@@ -114,6 +105,7 @@ def categorize_transaction_automatically(
     transaction_model.classification_id = auto_transaction.classification_id
     transaction_model.subcategory_id = auto_transaction.subcategory_id
     transaction_model.auto_categorize = auto_transaction.auto_categorize
+    transaction_model.payment_proportion = auto_transaction.payment_proportion
 
     return transaction_model
 
