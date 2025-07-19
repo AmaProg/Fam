@@ -358,7 +358,7 @@ def main(
         settings.update.check_new_version()
 
     # verification de la connextion du l'utilisateur
-    if ctx.invoked_subcommand not in ["logout", "login", "signup", "init"]:
+    if ctx.invoked_subcommand not in ["logout", "login", "signup", "init", "reset"]:
         Context.database_url = auth.get_user_database_url()
         Context.db = get_db(db_path=Context.database_url, db_type=DatabaseType.USER)  # type: ignore
 
